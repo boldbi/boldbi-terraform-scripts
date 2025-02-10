@@ -34,20 +34,5 @@ ecs_task_replicas = 1  # Number of ECS task replicas
 deployment_maximum_percent = 200  # Maximum percentage of tasks during deployment
 deployment_minimum_healthy_percent = 100  # Minimum percentage of healthy tasks during deployment
 
-# SSL Configuration with AWS ACM Certificate
-certificate_arn = ""
-
-# Sensitive Information Handling
-# The following details are considered sensitive information.  
-# We recommend setting these variables through environment variables.  
-# Refer to the documentation: https://document-link for best practices.
-
-# Route 53 Configuration
-# route53_zone_id = ""  # Add the hosted zone ID if available
-
-# Cloudflare Domain Mapping
-# cloudflare_api_token = ""
-# cloudflare_zone_id = ""
-
-# Secrets and Sensitive Information
-# boldbi_secret_arn = ""
+# AWS secret manager ARN
+boldbi_secret_arn = ""

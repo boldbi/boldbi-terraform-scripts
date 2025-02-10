@@ -187,6 +187,9 @@ locals {
   bold_unlock_key   = var.bold_unlock_key != null ? var.bold_unlock_key : lookup(local.secret, "bold_services_unlock_key", null)
   boldbi_username   = var.boldbi_username != null ? var.boldbi_username : lookup(local.secret, "bold_services_user_email", null)
   boldbi_usr_password = var.boldbi_usr_password != null ? var.boldbi_usr_password : lookup(local.secret, "bold_services_user_password", null)
+  cloudflare_api_token = var.cloudflare_api_token != null ? var.cloudflare_api_token : lookup(local.secret, "cloudflare_api_token", null)
+  cloudflare_zone_id = var.cloudflare_zone_id != null ? var.cloudflare_zone_id : lookup(local.secret, "cloudflare_zone_id", null)
+  route53_zone_id = var.route53_zone_id != null ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", null)
 }
 
 # Create PostgreSQL RDS Server.
@@ -298,32 +301,23 @@ resource "aws_lb" "ecs_alb" {
 }
 # Create a CNAME record in Route 53 to point to the ALB
 resource "aws_route53_record" "alb_cname" {
-  count = var.app_base_url != "" ? 1 : 0
+  count = (var.app_base_url != "" && var.route53_zone_id != "") ? 1 : 0
   zone_id = var.route53_zone_id
-  #name    = replace(var.app_base_url, "https://", "")  # Replace "https://" from app_base_url
-  name = replace(replace(var.app_base_url, "https://", ""), "http://", "")
+  name    = replace(replace(var.app_base_url, "https://", ""), "http://", "")
   type    = "CNAME"
-  ttl     = 300
+  ttl     = 60
   records = [aws_lb.ecs_alb.dns_name]  # Point to the ALB's DNS name
 }
 
 # Create a CNAME record in Cloudflare to point to the ALB
-# resource "cloudflare_record" "alb_cname" {
-#   count   = var.app_base_url != "" ? 1 : 0
-#   zone_id = var.cloudflare_zone_id
-#   # Remove "https://" or "http://" from app_base_url
-#   #name    = replace(replace(var.app_base_url, "https://", ""), "http://", "")
-#   name = split(".", replace(replace(var.app_base_url, "https://", ""), "http://", ""))[0]
-#   type    = "CNAME"
-#   ttl     = 300
-#   content = aws_lb.ecs_alb.dns_name  # ALB DNS name
-#   proxied = false # Enable Cloudflare proxying (set to false if not needed)
-# }
-
-# Updating key pair for ssh connection.
-resource "aws_key_pair" "ecs_key_pair" {
- key_name   = "ecs-key-pair"
- public_key = file("~/.ssh/id_rsa.pub") # Replace with your public key path
+resource "cloudflare_record" "alb_cname" {
+  count   = (var.app_base_url != "" && var.cloudflare_api_token != "") ? 1 : 0
+  zone_id = var.cloudflare_zone_id
+  name    = split(".", replace(replace(var.app_base_url, "https://", ""), "http://", ""))[0]
+  type    = "CNAME"
+  ttl     = 60
+  content = aws_lb.ecs_alb.dns_name  # ALB DNS name
+  proxied = false  # Enable Cloudflare proxying (set to false if not needed)
 }
 # Launch Configuration for ECS EC2 Instances
 resource "aws_launch_configuration" "ecs_launch_config" {
@@ -1047,7 +1041,7 @@ resource "aws_ecs_task_definition" "bold_etl_task" {
     Name = "${var.app_name}-bold_etl_task-${var.environment}"
   }
 }
-# Create service for each tasks.
+# Create EC2 service for each tasks.
 resource "aws_ecs_service" "id_web_service_ec2" {
   count = var.launch_type == "EC2" ? 1 : 0
   name            = "${var.app_name}-id-web-service-${var.environment}"
@@ -1184,7 +1178,7 @@ resource "aws_ecs_service" "bold_etl_service_ec2" {
   }
   depends_on = [aws_lb_target_group.bold_etl_tg]
 }
-
+# Create Fargate service for each tasks.
 resource "aws_ecs_service" "id_web_service_fargate" {
   count = var.launch_type == "FARGATE" ? 1 : 0
   name            = "${var.app_name}-id-web-service-${var.environment}"
@@ -1362,44 +1356,18 @@ resource "aws_ecs_service" "bold_etl_service_fargate" {
   depends_on = [aws_lb_target_group.bold_etl_tg]
 }
 
-
-# Create Listener for HTTP (80) and HTTPS (443)
+# Create Listener for HTTP (80)
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-    type             = "redirect"
-    redirect {
-      protocol = "HTTPS"
-      port     = "443"
-      status_code = "HTTP_301"
-    }
-  }
-
-  # default_action {
-  #   type             = "fixed-response"
-  #   fixed_response {
-  #     status_code = "200"
-  #     content_type = "text/plain"
-  #     message_body = "OK"
-  #   }
-  # }
-}
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.ecs_alb.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy = "ELBSecurityPolicy-2016-08"
-  certificate_arn = var.certificate_arn
-
-  default_action {
-    type             = "fixed-response"
-    fixed_response {
-      status_code = "200"
-      content_type = "text/plain"
-      message_body = "OK"
+    type = "forward"
+    forward {
+      target_group {
+        arn = aws_lb_target_group.id_web_tg.arn
+      }
     }
   }
 }
@@ -1526,7 +1494,7 @@ resource "aws_lb_target_group" "bold_etl_tg" {
 }
 # Define ALB Path-Based Routing
 resource "aws_lb_listener_rule" "bold_etl_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 10
 
   action {
@@ -1541,7 +1509,7 @@ resource "aws_lb_listener_rule" "bold_etl_rule" {
   }
 }
 resource "aws_lb_listener_rule" "bi_api_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 20
 
   action {
@@ -1557,7 +1525,7 @@ resource "aws_lb_listener_rule" "bi_api_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_jobs_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 30
 
   action {
@@ -1573,7 +1541,7 @@ resource "aws_lb_listener_rule" "bi_jobs_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_dataservice_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 40
 
   action {
@@ -1588,10 +1556,8 @@ resource "aws_lb_listener_rule" "bi_dataservice_rule" {
   }
 }
 
-
-
 resource "aws_lb_listener_rule" "bi_web_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 50
 
   action {
@@ -1607,7 +1573,7 @@ resource "aws_lb_listener_rule" "bi_web_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_api_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 60
 
   action {
@@ -1623,7 +1589,7 @@ resource "aws_lb_listener_rule" "id_api_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_ums_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 70
 
   action {
@@ -1639,7 +1605,7 @@ resource "aws_lb_listener_rule" "id_ums_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_web_rule" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 80
 
   action {
@@ -1663,4 +1629,8 @@ output "ecs_optimized_ami_id" {
 }
 output "alb_dns_name" {
   value = aws_lb.ecs_alb.dns_name
+}
+
+output "app_base_url" {
+  value = var.app_base_url
 }
