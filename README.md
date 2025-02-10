@@ -1,6 +1,6 @@
-# How to Deploy Bold BI in AWS ECS with a Single Execution Using Terraform
+# Deploy Bold BI Using Terraform on AWS ECS
 
-This guide explains how to deploy Bold BI on AWS ECS using Terraform scripts in a single command execution. Follow the steps carefully to ensure a successful deployment.
+This guide explains how to deploy Bold BI using a Terraform script. The script automates the creation of all necessary AWS resources and the deployment of Bold BI. Once the deployment is complete, you can copy and paste the APP_URL into your browser to start evaluating Bold BI.
 
 ---
 
