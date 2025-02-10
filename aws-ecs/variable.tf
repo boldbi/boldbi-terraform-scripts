@@ -109,32 +109,36 @@ variable "boldbi_secret_arn" {
 variable "db_username" {
   description = "The PostgreSQL username"
   type        = string
-  default     = "" # Forces user to provide a value
+  nullable    = false
 }
 
 variable "db_password" {
   description = "The PostgreSQL password"
   type        = string
-  default     = "" # Forces user to provide a value
+  sensitive   = true
+  nullable    = false
 }
 
 variable "bold_unlock_key" {
   description = "The Bold services unlock key"
   type        = string
-  default     = "" # Forces user to provide a value
+  sensitive   = true
+  nullable    = false
 }
 
 variable "boldbi_username" {
-  description = "The Bold BI username"
+  description = "The Bold BI admin username"
   type        = string
-  default     = "" # Forces user to provide a value
+  nullable    = false
 }
 
 variable "boldbi_user_password" {
-  description = "The Bold BI user password"
+  description = "The Bold BI admin password"
   type        = string
-  default     = "" # Forces user to provide a value
+  sensitive   = true
+  nullable    = false
 }
+
 
 # ECS Configuration
 variable "task_cpu" {
@@ -169,15 +173,13 @@ variable "deployment_minimum_healthy_percent" {
 
 # Route 53 Configuration
 variable "route53_zone_id" {
-  description = "Route 53 hosted zone ID"
+  description = "The Route 53 hosted zone ID. If left empty, Bold BI will not be configured with a custom domain."
   type        = string
-  default     = ""
 }
 
 # SSL Configuration
 variable "acm_certificate_arn" {
-  description = "ARN of the SSL/TLS certificate for HTTPS"
+  description = "The ARN of the SSL/TLS certificate for HTTPS. If left empty, SSL will not be enabled."
   type        = string
-  default     = "" 
   sensitive   = true
 }

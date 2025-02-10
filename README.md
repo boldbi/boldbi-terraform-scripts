@@ -57,9 +57,8 @@ Add the following environment variables either as a [local system](https://chlee
 | TF_VAR_boldbi_username     | Bold BI admin username                           |
 | TF_VAR_boldbi_usr_password | Bold BI admin password                           |
 | TF_VAR_bold_unlock_key     | Unlock key for Bold BI                           |
-| TF_VAR_cloudflare_api_token | Cloudflare API token (if applicable)            |
-| TF_VAR_cloudflare_zone_id  | Cloudflare Zone ID (if applicable)               |
 | TF_VAR_route53_zone_id     | AWS Route 53 Zone ID (if applicable)             |
+| TF_VAR_acm_certificate_arn | AWS ACM Certificate for SSL configuration        |
 
 Variables after setting in system variables:
 ![System Environment Variable](./images/system-environment-variable.png)
@@ -91,7 +90,7 @@ terraform validate
 ![Terraform Validate](./images/terraform-validate.png)
 
 ### Step 6: Apply the Terraform Script
-Execute the following command to apply the Terraform script:
+Execute the following command to apply the Terraform script. When prompted, type "yes" to approve the resource creation.
 ```sh
 terraform apply
 ```
@@ -103,8 +102,11 @@ After seeing the following message, you can access Bold BI in your browser:
 
 Please wait until the startup process completes and avoid opening the URL in multiple tabs. The initial startup may take some time. Once the startup configuration is complete, Bold BI will be ready for use.
 
+![Bold BI Ready](./images/Dashboard-listing.png)
+
 ## Destroy Bold BI and Resources
-To destroy Bold BI and all associated resources, run the following command from the same directory:
+To destroy Bold BI and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
 ```sh
 terraform destroy
 ```
+![Bold BI Ready](./images/terrform-destroy.png)

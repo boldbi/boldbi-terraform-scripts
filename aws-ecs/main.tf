@@ -1335,22 +1335,31 @@ resource "aws_ecs_service" "bold_etl_service_fargate" {
   depends_on = [aws_lb_target_group.bold_etl_tg]
 }
 
-# Create Listener for HTTP (80) and HTTP (443)
+# Create Listener for HTTP (80) and HTTPS (443)
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-    type = "forward"
-    forward {
-      target_group {
-        arn = aws_lb_target_group.id_web_tg.arn
-      }
+    type             = "redirect"
+    redirect {
+      protocol = "HTTPS"
+      port     = "443"
+      status_code = "HTTP_301"
     }
   }
-}
 
+  # default_action {
+  #   type             = "fixed-response"
+  #   fixed_response {
+  #     status_code = "200"
+  #     content_type = "text/plain"
+  #     message_body = "OK"
+  #   }
+  # }
+  depends_on = [aws_lb.ecs_alb]
+}
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "443"
@@ -1359,11 +1368,11 @@ resource "aws_lb_listener" "https" {
   certificate_arn = local.acm_certificate_arn
 
   default_action {
-    type = "forward"
-    forward {
-      target_group {
-        arn = aws_lb_target_group.id_web_tg.arn
-      }
+    type             = "fixed-response"
+    fixed_response {
+      status_code = "200"
+      content_type = "text/plain"
+      message_body = "OK"
     }
   }
   depends_on = [aws_lb.ecs_alb]
