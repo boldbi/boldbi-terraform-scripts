@@ -1,17 +1,17 @@
 # Provider Configuration
 region = "us-east-1"
-app_name = "bold"
-environment = "dev"
+app_name = "cloud"
+environment = "ecs"
 
 # Bold BI Deployment Configuration
 bold_services_hosting_environment = "k8s"
-app_base_url = ""  # Value must use a secure protocol (e.g., https://dashboard.boldbi.com).
+app_base_url = ""  # Value must use a secure protocol (e.g., http://dashboard.boldbi.com).
                    # If left empty, the script will use the ALB load balancer DNS for application hosting.
 
 # These are the default client libraries used in Bold BI. Update as needed.
 install_optional_libs = "mongodb,mysql,influxdb,snowflake,oracle,clickhouse,google"  
 
-# Bold BI requires a site identifier to differentiate sites on the same domain (e.g., https://example.com/bi/site/).  
+# Bold BI requires a site identifier to differentiate sites on the same domain (e.g., http://example.com/bi/site/).  
 # Set this to "false" to disable the site identifier. If disabled, each site requires a unique domain.
 bold_services_use_site_identifier = "true"  
 
