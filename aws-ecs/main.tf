@@ -1,20 +1,30 @@
-terraform {
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
-    }
-  }
+# Fetching the latest version of the secret from AWS Secrets Manager
+data "aws_secretsmanager_secret_version" "boldbi_secret" {
+  count     = var.boldbi_secret_arn != "" ? 1 : 0
+  secret_id = var.boldbi_secret_arn
+}
+
+locals {
+  # Decode secrets only if the secret ARN is provided
+  secret = length(data.aws_secretsmanager_secret_version.boldbi_secret) > 0 ? jsondecode(data.aws_secretsmanager_secret_version.boldbi_secret[0].secret_string) : {}
+
+  # Use environment variables, secrets, or user-provided inputs
+  app_base_url = var.app_base_url != "" ? var.app_base_url : lookup(local.secret, "app_base_url", "")
+  db_username       = var.db_username != "" ? var.db_username : lookup(local.secret, "postgresql_username", "")
+  db_password       = var.db_password != "" ? var.db_password : lookup(local.secret, "postgresql_password", "")
+  bold_unlock_key   = var.bold_unlock_key != "" ? var.bold_unlock_key : lookup(local.secret, "bold_services_unlock_key", "")
+  boldbi_username   = var.boldbi_username != "" ? var.boldbi_username : lookup(local.secret, "bold_services_user_email", "")
+  boldbi_user_password = var.boldbi_user_password != "" ? var.boldbi_user_password : lookup(local.secret, "bold_services_user_password", "")
+  route53_zone_id = var.route53_zone_id != "" ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", "")
+  acm_certificate_arn = var.acm_certificate_arn != "" ? var.acm_certificate_arn : lookup(local.secret, "acm_certificate_arn", "")
+  
+  # Determine protocol dynamically based on app_base_url
+  protocol = startswith(local.app_base_url, "https://") ? "https" : "http" 
 }
 
 # Define Resource provider.
 provider "aws" {
   region = var.region
-}
-
-# Cloudflare Provider
-provider "cloudflare" {
-  api_token = var.cloudflare_api_token
 }
 
 # Fetch available availability zones.
@@ -172,26 +182,6 @@ resource "aws_security_group" "postgresql_sg" {
   }
 }
 
-data "aws_secretsmanager_secret_version" "boldbi_secret" {
-  count     = var.boldbi_secret_arn != null ? 1 : 0
-  secret_id = var.boldbi_secret_arn
-}
-
-locals {
-  # Decode secrets only if the secret ARN is provided
-  secret = length(data.aws_secretsmanager_secret_version.boldbi_secret) > 0 ? jsondecode(data.aws_secretsmanager_secret_version.boldbi_secret[0].secret_string) : {}
-
-  # Use environment variables, secrets, or user-provided inputs
-  db_username       = var.db_username != null ? var.db_username : lookup(local.secret, "postgresql_username", null)
-  db_password       = var.db_password != null ? var.db_password : lookup(local.secret, "postgresql_password", null)
-  bold_unlock_key   = var.bold_unlock_key != null ? var.bold_unlock_key : lookup(local.secret, "bold_services_unlock_key", null)
-  boldbi_username   = var.boldbi_username != null ? var.boldbi_username : lookup(local.secret, "bold_services_user_email", null)
-  boldbi_usr_password = var.boldbi_usr_password != null ? var.boldbi_usr_password : lookup(local.secret, "bold_services_user_password", null)
-  cloudflare_api_token = var.cloudflare_api_token != null ? var.cloudflare_api_token : lookup(local.secret, "cloudflare_api_token", null)
-  cloudflare_zone_id = var.cloudflare_zone_id != null ? var.cloudflare_zone_id : lookup(local.secret, "cloudflare_zone_id", null)
-  route53_zone_id = var.route53_zone_id != null ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", null)
-}
-
 # Create PostgreSQL RDS Server.
 resource "aws_db_instance" "postgresql" {
   #db_name                 = local.db_name
@@ -309,16 +299,6 @@ resource "aws_route53_record" "alb_cname" {
   records = [aws_lb.ecs_alb.dns_name]  # Point to the ALB's DNS name
 }
 
-# Create a CNAME record in Cloudflare to point to the ALB
-resource "cloudflare_record" "alb_cname" {
-  count   = (var.app_base_url != "" && var.cloudflare_api_token != "") ? 1 : 0
-  zone_id = var.cloudflare_zone_id
-  name    = split(".", replace(replace(var.app_base_url, "https://", ""), "http://", ""))[0]
-  type    = "CNAME"
-  ttl     = 60
-  content = aws_lb.ecs_alb.dns_name  # ALB DNS name
-  proxied = false  # Enable Cloudflare proxying (set to false if not needed)
-}
 # Launch Configuration for ECS EC2 Instances
 resource "aws_launch_configuration" "ecs_launch_config" {
   count = var.launch_type == "EC2" ? 1 : 0
@@ -510,7 +490,7 @@ resource "aws_ecs_task_definition" "id_ums_task" {
       },
       {
         name      = "BOLD_SERVICES_USER_PASSWORD"
-        value = local.boldbi_usr_password
+        value = local.boldbi_user_password
       }
       # {
       #   name      = "BOLD_SERVICES_DB_NAME"
@@ -1355,7 +1335,7 @@ resource "aws_ecs_service" "bold_etl_service_fargate" {
   depends_on = [aws_lb_target_group.bold_etl_tg]
 }
 
-# Create Listener for HTTP (80)
+# Create Listener for HTTP (80) and HTTP (443)
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "80"
@@ -1370,6 +1350,25 @@ resource "aws_lb_listener" "http" {
     }
   }
 }
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.ecs_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn = local.acm_certificate_arn
+
+  default_action {
+    type = "forward"
+    forward {
+      target_group {
+        arn = aws_lb_target_group.id_web_tg.arn
+      }
+    }
+  }
+  depends_on = [aws_lb.ecs_alb]
+}
+
 # Create Target Groups for Each Service
 resource "aws_lb_target_group" "id_web_tg" {
   name        = "${var.app_name}-id-web-tg-${var.environment}"
@@ -1493,7 +1492,7 @@ resource "aws_lb_target_group" "bold_etl_tg" {
 }
 # Define ALB Path-Based Routing
 resource "aws_lb_listener_rule" "bold_etl_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 10
 
   action {
@@ -1508,7 +1507,7 @@ resource "aws_lb_listener_rule" "bold_etl_rule" {
   }
 }
 resource "aws_lb_listener_rule" "bi_api_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 20
 
   action {
@@ -1524,7 +1523,7 @@ resource "aws_lb_listener_rule" "bi_api_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_jobs_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 30
 
   action {
@@ -1540,7 +1539,7 @@ resource "aws_lb_listener_rule" "bi_jobs_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_dataservice_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 40
 
   action {
@@ -1556,7 +1555,7 @@ resource "aws_lb_listener_rule" "bi_dataservice_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_web_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 50
 
   action {
@@ -1572,7 +1571,7 @@ resource "aws_lb_listener_rule" "bi_web_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_api_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 60
 
   action {
@@ -1588,7 +1587,7 @@ resource "aws_lb_listener_rule" "id_api_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_ums_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 70
 
   action {
@@ -1604,7 +1603,7 @@ resource "aws_lb_listener_rule" "id_ums_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_web_rule" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
   priority     = 80
 
   action {

@@ -43,8 +43,7 @@ variable "bold_services_hosting_environment" {
 }
 
 variable "app_base_url" {
-  description = "The base URL for the Bold BI application (e.g., https://example.com)"
-  default     = ""  # Leave empty to use the ALB DNS
+  description = "The base URL for the Bold BI application (e.g., https://example.com). If left empty, the script will use the ALB load balancer DNS for application hosting."
   type        = string
 }
 
@@ -76,27 +75,27 @@ variable "id_api_image_tag" {
 }
 
 variable "bi_web_image_tag" {
-  description = "Image tag for Reports Web container"
+  description = "Image tag for BI Web container"
   type        = string
 }
 
 variable "bi_api_image_tag" {
-  description = "Image tag for Reports API container"
+  description = "Image tag for BI API container"
   type        = string
 }
 
 variable "bi_jobs_image_tag" {
-  description = "Image tag for Reports Jobs container"
+  description = "Image tag for BI Jobs container"
   type        = string
 }
 
 variable "bi_dataservice_image_tag" {
-  description = "Image tag for Reports Web container"
+  description = "Image tag for BI Web container"
   type        = string
 }
 
 variable "bold_etl_image_tag" {
-  description = "Image tag for Reports Jobs container"
+  description = "Image tag for Bold ETL container"
   type        = string
 }
 
@@ -104,37 +103,37 @@ variable "bold_etl_image_tag" {
 variable "boldbi_secret_arn" {
   description = "The ARN of the Secrets Manager secret for Bold BI configuration"
   type        = string
-  default     = null # Forces user to provide a value
+  default     = "" # Forces user to provide a value
 }
 
 variable "db_username" {
   description = "The PostgreSQL username"
   type        = string
-  default     = null # Forces user to provide a value
+  default     = "" # Forces user to provide a value
 }
 
 variable "db_password" {
   description = "The PostgreSQL password"
   type        = string
-  default     = null # Forces user to provide a value
+  default     = "" # Forces user to provide a value
 }
 
 variable "bold_unlock_key" {
   description = "The Bold services unlock key"
   type        = string
-  default     = null # Forces user to provide a value
+  default     = "" # Forces user to provide a value
 }
 
 variable "boldbi_username" {
   description = "The Bold BI username"
   type        = string
-  default     = null # Forces user to provide a value
+  default     = "" # Forces user to provide a value
 }
 
-variable "boldbi_usr_password" {
+variable "boldbi_user_password" {
   description = "The Bold BI user password"
   type        = string
-  default     = null # Forces user to provide a value
+  default     = "" # Forces user to provide a value
 }
 
 # ECS Configuration
@@ -172,16 +171,13 @@ variable "deployment_minimum_healthy_percent" {
 variable "route53_zone_id" {
   description = "Route 53 hosted zone ID"
   type        = string
-  default     = "" # Optional
-}
-# Cloudflare domain mapping.
-variable "cloudflare_api_token" {
-  description = "Cloudflare API Token"
-  type        = string
-  sensitive   = true
+  default     = ""
 }
 
-variable "cloudflare_zone_id" {
-  description = "Cloudflare Zone ID for your domain"
+# SSL Configuration
+variable "acm_certificate_arn" {
+  description = "ARN of the SSL/TLS certificate for HTTPS"
   type        = string
+  default     = "" 
+  sensitive   = true
 }

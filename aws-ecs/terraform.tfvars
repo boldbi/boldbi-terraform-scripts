@@ -1,12 +1,10 @@
 # Provider Configuration
 region = "us-east-1"
-app_name = "sync"
-environment = "site"
+app_name = "bold-bi"
+environment = "demo"
 
 # Bold BI Deployment Configuration
 bold_services_hosting_environment = "k8s"
-app_base_url = ""  # Value must use a secure protocol (e.g., http://dashboard.boldbi.com).
-                   # If left empty, the script will use the ALB load balancer DNS for application hosting.
 
 # These are the default client libraries used in Bold BI. Update as needed.
 install_optional_libs = "mongodb,mysql,influxdb,snowflake,oracle,clickhouse,google"  
@@ -27,7 +25,7 @@ bold_etl_image_tag    = "9.1.73"
 # EC2 Instance and ECS Configuration
 launch_type = "EC2"  # Supported values: "EC2" and "FARGATE"
 instance_class = "db.t3.xlarge"  # Instance class for RDS or EC2
-instance_type = "t3.2xlarge	"     # EC2 instance type
+instance_type = "t3.xlarge"     # EC2 instance type
 task_cpu = 512  # CPU allocation for ECS container
 task_memory = 1024  # Memory allocation for ECS container (in MiB)
 ecs_task_replicas = 1  # Number of ECS task replicas
@@ -35,4 +33,4 @@ deployment_maximum_percent = 200  # Maximum percentage of tasks during deploymen
 deployment_minimum_healthy_percent = 100  # Minimum percentage of healthy tasks during deployment
 
 # AWS secret manager ARN
-boldbi_secret_arn = null
+boldbi_secret_arn = ""
