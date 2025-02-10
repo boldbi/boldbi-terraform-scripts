@@ -168,14 +168,6 @@ variable "deployment_minimum_healthy_percent" {
   default     = 100
 }
 
-# SSL Configuration
-# variable "certificate_arn" {
-#   description = "ARN of the SSL/TLS certificate for HTTPS"
-#   type        = string
-#   default     = ""  # Empty default allows for flexibility
-#   sensitive   = true
-# }
-
 # Route 53 Configuration
 variable "route53_zone_id" {
   description = "Route 53 hosted zone ID"
