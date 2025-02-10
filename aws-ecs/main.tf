@@ -325,7 +325,6 @@ resource "aws_launch_configuration" "ecs_launch_config" {
   name          = "${var.app_name}-ecs-launch-config-${var.environment}"
   image_id      = data.aws_ami.ecs_optimized.id
   instance_type = var.instance_type # Change to t3.xlarge if needed
-  key_name      = aws_key_pair.ecs_key_pair.key_name
   iam_instance_profile = aws_iam_instance_profile.bold_ecs_instance_profile.name
 
   user_data = <<-EOF
