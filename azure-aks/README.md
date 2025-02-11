@@ -55,9 +55,9 @@ Add the following environment variables [local system](https://chlee.co/how-to-s
 | TF_VAR_azure_tenant_id      |Required                       | Azure Tenant ID for authentication                |
 | TF_VAR_db_username          |Required                       | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'azure_superuser', 'azure_pg_admin', 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
 | TF_VAR_db_password          |Required                       | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
-| TF_VAR_boldbi_email         |Required for Auto-deployment   | Bold BI admin Email                               |
-| TF_VAR_boldbi_password      |Required for Auto-deployment   | Bold BI admin password                            |
-| TF_VAR_boldbi_unlock_key    |Required for Auto-deployment   | Unlock key for Bold BI                            |
+| TF_VAR_boldbi_email         |Required    | Bold BI admin Email                               |
+| TF_VAR_boldbi_password      |Required    | Bold BI admin password                            |
+| TF_VAR_boldbi_unlock_key    |Required   | Unlock key for Bold BI                            |
 | TF_VAR_app_base_url         |Optional                       | The base URL for the Bold BI application (e.g., https://example.com).<br>If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com).<p><br> **Note:-**  If app_base_url is left empty, you must install Azure CLI on your machine for Azure DNS mapping.[Azure CLI Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)                                                |
 | TF_VAR_cloudflare_api_token |Optional                       | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id   |Optional                       | Cloudflare zone ID for DNS mapping on cloudflare  |
