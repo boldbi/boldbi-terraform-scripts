@@ -66,10 +66,10 @@ Add the following environment variables either as a [local system](https://chlee
 
 | **Variable Name**             | **Description**                                    |
 |-------------------------------|----------------------------------------------------|
-| `* TF_VAR_db_username`          | Database username                                |
-| `* TF_VAR_db_password`          | Database password                                |
+| `* TF_VAR_db_username`          | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'azure_superuser', 'azure_pg_admin', 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
+| `* TF_VAR_db_password`          | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
 | `* TF_VAR_boldbi_username`      | Bold BI admin username                           |
-| `* TF_VAR_boldbi_user_password` | Bold BI admin password                           |
+| `* TF_VAR_boldbi_user_password` | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
 | `* TF_VAR_bold_unlock_key`      | Unlock key for Bold BI                           |
 | ` TF_VAR_route53_zone_id`      | AWS Route 53 Zone ID (if applicable)             |
 | ` TF_VAR_acm_certificate_arn`  | AWS ACM Certificate for SSL configuration        |
