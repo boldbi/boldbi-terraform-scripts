@@ -49,7 +49,7 @@ cd boldbi-terraform-scripts/aws-ecs
 
 ### Step 3: Set Environment Variables
 
-Add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
+To authenticate Terraform with your AWS account, add the following environment variables to your system variables. Alternatively, you can log in using [aws configure](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-configure.html)
 
 ### 🔹 Provider Environment Variables
 
@@ -60,6 +60,8 @@ Add the following environment variables either as a [local system](https://chlee
 
 ---
 
+Add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
+
 ### 🔹 Application Environment Variables
 
 | **Variable Name**             | **Description**                                    |
@@ -69,8 +71,8 @@ Add the following environment variables either as a [local system](https://chlee
 | `* TF_VAR_boldbi_username`      | Bold BI admin username                           |
 | `* TF_VAR_boldbi_user_password` | Bold BI admin password                           |
 | `* TF_VAR_bold_unlock_key`      | Unlock key for Bold BI                           |
-| `* TF_VAR_route53_zone_id`      | AWS Route 53 Zone ID (if applicable)             |
-| `* TF_VAR_acm_certificate_arn`  | AWS ACM Certificate for SSL configuration        |
+| ` TF_VAR_route53_zone_id`      | AWS Route 53 Zone ID (if applicable)             |
+| ` TF_VAR_acm_certificate_arn`  | AWS ACM Certificate for SSL configuration        |
 | `TF_VAR_app_base_url`         | Base URL for the Application                     |
 
 ### 🔄 Notes
