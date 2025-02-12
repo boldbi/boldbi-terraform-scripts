@@ -67,14 +67,14 @@ Set up the following environment variables on your [local system](https://chlee.
 | TF_VAR_app_base_url         | The base URL for the Bold BI application (e.g., https://example.com).<br>If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com).<p><br> **Note:-**  If app_base_url is left empty, you must install Azure CLI on your machine for Azure DNS mapping.[Azure CLI Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)                                                |
 | TF_VAR_cloudflare_api_token | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id   | Cloudflare zone ID for DNS mapping on cloudflare  |
-| TF_VAR_tls_certificate_path | For apply SSL creatificate on AKS cluster         | 
-| TF_VAR_tls_certificate_path | For apply SSL private key on AKS cluster          | 
+| TF_VAR_tls_certificate_path | For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
+| TF_VAR_tls_certificate_path | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         | 
 
 ### 🔄 Notes
 
 🌟 `*` marked variables are mandatory field .  
 🌟 If any environment variable is not set, Terraform will prompt you to enter it during execution.  
-🌟 To reuse the command, you need to open a new terminal, or else environment variable values will not be available.
+🌟 Please open a new terminal or PowerShell session after setting the environment variable in the system to ensure the updated value is recognized.
 
 Variables after setting in system variables:
 
@@ -102,14 +102,19 @@ Execute the following command to apply the Terraform script. When prompted, type
 ```sh
 terraform apply
 ```
-![terraform apply](./images/terraform-apply.png)
+![terraform apply](./images/apply.gif)
 
 After seeing the following message, you can access Bold BI in your browser:
 
+![URL](./images/url.png)
+
 Please wait until the startup process completes and avoid opening the URL in multiple tabs. The initial startup may take some time. Once the startup configuration is complete, Bold BI will be ready for use.
+
+![terraform apply](./images/boldbi.gif)
 
 ## Destroy Bold BI and Resources
 To destroy Bold BI and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
 ```sh
 terraform destroy
 ```
+![terraform destroy](./images/destroy.gif)
