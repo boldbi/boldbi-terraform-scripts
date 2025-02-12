@@ -10,7 +10,7 @@ Before proceeding, ensure the following tools and resources are installed and av
 
 1. **Terraform CLI**  
    Install Terraform from the official guide: [Terraform Installation Guide](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
-2. **Azure Subscription with Azure Application Registry**
+2. [Azure Subscription](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account) with An [Azure Application Registry](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal)
    - Client ID
    - Client Secret
    - Tenant ID
