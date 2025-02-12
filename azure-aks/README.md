@@ -68,7 +68,7 @@ Set up the following environment variables on your [local system](https://chlee.
 | TF_VAR_cloudflare_api_token | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id   | Cloudflare zone ID for DNS mapping on cloudflare  |
 | TF_VAR_tls_certificate_path | For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
-| TF_VAR_tls_certificate_path | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         | 
+| TF_VAR_tls_key_path | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         | 
 
 ### 🔄 Notes
 
