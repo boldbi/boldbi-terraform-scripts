@@ -93,7 +93,7 @@ Application Variables after setting in AWS Secrets Manager:
 
 ![Secret Variable](./images/secret-variable.png)
 
-- If you need to change any infrastructure or application-level settings, refer to the `variable.tfvar` file.
+- If you need to change any infrastructure or application-level settings, refer to the `terraform.tfvars` file.
 
 - If you do not set the secrets in either location, Terraform will prompt you for the values during execution.
 
