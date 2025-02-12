@@ -29,6 +29,5 @@ storage_subnet_prefix = ["10.1.3.0/24"]
 # Bold BI Deployment
 bold_bi_namespace       = "bold-services"
 bold_bi_version         = "9.1.73"
-app_base_url            = ""
 tls_certificate_path    = ""
 tls_key_path            = ""
