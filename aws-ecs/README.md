@@ -73,7 +73,7 @@ Add the following environment variables either as a [local system](https://chlee
 | `* TF_VAR_bold_unlock_key`      | Unlock key for Bold BI                           |
 | ` TF_VAR_route53_zone_id`      | AWS Route 53 Zone ID (if applicable)             |
 | ` TF_VAR_acm_certificate_arn`  | AWS ACM Certificate for SSL configuration        |
-| `TF_VAR_app_base_url`         | Base URL for the Application                     |
+| ` TF_VAR_app_base_url`         | Base URL for the Application                     |
 
 ### 🔄 Notes
 
