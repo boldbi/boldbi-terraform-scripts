@@ -1342,22 +1342,9 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type             = "redirect"
-    redirect {
-      protocol = "HTTPS"
-      port     = "443"
-      status_code = "HTTP_301"
-    }
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.id_web_tg.arn
   }
-
-  # default_action {
-  #   type             = "fixed-response"
-  #   fixed_response {
-  #     status_code = "200"
-  #     content_type = "text/plain"
-  #     message_body = "OK"
-  #   }
-  # }
   depends_on = [aws_lb.ecs_alb]
 }
 resource "aws_lb_listener" "https" {
@@ -1368,12 +1355,8 @@ resource "aws_lb_listener" "https" {
   certificate_arn = local.acm_certificate_arn
 
   default_action {
-    type             = "fixed-response"
-    fixed_response {
-      status_code = "200"
-      content_type = "text/plain"
-      message_body = "OK"
-    }
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.id_web_tg.arn
   }
   depends_on = [aws_lb.ecs_alb]
 }
