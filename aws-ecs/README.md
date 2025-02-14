@@ -51,35 +51,26 @@ cd boldbi-terraform-scripts/aws-ecs
 
 To authenticate Terraform with your AWS account, add the following environment variables to your system variables. Alternatively, you can log in using [aws configure](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-configure.html)
 
-### 🔹 Provider Environment Variables
-
-| **Variable Name**             | **Description**                                    |
-|-------------------------------|----------------------------------------------------|
-| `* AWS_ACCESS_KEY_ID`           | AWS access key for authentication                 |
-| `* AWS_SECRET_ACCESS_KEY`       | AWS secret key for authentication                 |
+| **Variable Name**             |Required| **Description**                                    |
+|-------------------------------|--------|----------------------------------------------------|
+| AWS_ACCESS_KEY_ID         | Yes  | AWS access key for authentication                 |
+| AWS_SECRET_ACCESS_KEY     | Yes  | AWS secret key for authentication                 |
 
 ---
+Other than this, we need to add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
 
-Add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
+---
+| **Variable Name**             |Required| **Description**                                    |
+|-------------------------------|--------|--------------------------------------------|
+| TF_VAR_db_username          |Yes| **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
+| TF_VAR_db_password          |Yes| **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
+| TF_VAR_boldbi_username      |Yes| Bold BI admin username                           |
+| TF_VAR_boldbi_user_password |Yes| **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
+| TF_VAR_bold_unlock_key      |Yes| Unlock key for Bold BI                           |
+| TF_VAR_route53_zone_id      |No| AWS Route 53 Zone ID (if applicable)             |
+| TF_VAR_acm_certificate_arn  |No| AWS ACM Certificate for SSL configuration        |
+| TF_VAR_app_base_url         |No| Base URL for the Application                     |
 
-### 🔹 Application Environment Variables
-
-| **Variable Name**             | **Description**                                    |
-|-------------------------------|----------------------------------------------------|
-| `* TF_VAR_db_username`          | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
-| `* TF_VAR_db_password`          | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
-| `* TF_VAR_boldbi_username`      | Bold BI admin username                           |
-| `* TF_VAR_boldbi_user_password` | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
-| `* TF_VAR_bold_unlock_key`      | Unlock key for Bold BI                           |
-| ` TF_VAR_route53_zone_id`      | AWS Route 53 Zone ID (if applicable)             |
-| ` TF_VAR_acm_certificate_arn`  | AWS ACM Certificate for SSL configuration        |
-| ` TF_VAR_app_base_url`         | Base URL for the Application                     |
-
-### 🔄 Notes
-
-🌟 `*` marked variables are mandatory field .  
-🌟 If any environment variable is not set, Terraform will prompt you to enter it during execution.  
-🌟 Please open a new terminal or PowerShell session after setting the environment variable in the system to ensure the updated value is recognized.
 
 Application Variables after setting in system variables:
 
