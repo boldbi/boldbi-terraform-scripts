@@ -122,3 +122,18 @@ variable "tls_key_path" {
   type        = string
   default     = ""
 }
+
+# Cloudflare provider
+variable "cloudflare_zone_id" {
+  description = "Enter cloudflare zone id"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "cloudflare_api_token" {
+  description = "Enter cloudflare api token"
+  type        = string
+  default     = "dummytokenplaceholdedummytokenplaceholde"
+  sensitive   = true
+}

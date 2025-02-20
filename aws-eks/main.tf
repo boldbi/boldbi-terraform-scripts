@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+      cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 3.0"
+    }
+  }
+}
+
 # Fetching the latest version of the secret from AWS Secrets Manager
 data "aws_secretsmanager_secret_version" "boldbi_secret" {
   count     = var.boldbi_secret_arn != "" ? 1 : 0
@@ -8,15 +17,17 @@ locals {
     # Decode secrets only if the secret ARN is provided
     secret = length(data.aws_secretsmanager_secret_version.boldbi_secret) > 0 ? jsondecode(data.aws_secretsmanager_secret_version.boldbi_secret[0].secret_string) : {}
     # Use environment variables, secrets, or user-provided inputs
-    app_base_url = var.app_base_url != "" ? var.app_base_url : lookup(local.secret, "app_base_url", "")
+    app_base_url      = var.app_base_url != "" ? var.app_base_url : lookup(local.secret, "app_base_url", "")
     db_username       = var.db_username != "" ? var.db_username : lookup(local.secret, "db_username", "")
     db_password       = var.db_password != "" ? var.db_password : lookup(local.secret, "db_password", "")
-    boldbi_unlock_key   = var.boldbi_unlock_key != "" ? var.boldbi_unlock_key : lookup(local.secret, "boldbi_unlock_key", "")
-    boldbi_email   = var.boldbi_email != "" ? var.boldbi_email : lookup(local.secret, "boldbi_email", "")
-    boldbi_password = var.boldbi_password != "" ? var.boldbi_password : lookup(local.secret, "boldbi_password", "")
-    route53_zone_id = var.route53_zone_id != "" ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", "")
+    boldbi_unlock_key = var.boldbi_unlock_key != "" ? var.boldbi_unlock_key : lookup(local.secret, "boldbi_unlock_key", "")
+    boldbi_email      = var.boldbi_email != "" ? var.boldbi_email : lookup(local.secret, "boldbi_email", "")
+    boldbi_password   = var.boldbi_password != "" ? var.boldbi_password : lookup(local.secret, "boldbi_password", "")
+    route53_zone_id   = var.route53_zone_id != "" ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", "")
     tls_certificate_path = var.tls_certificate_path != "" ? var.tls_certificate_path : lookup(local.secret, "tls_certificate_path", "")
-    tls_key_path = var.tls_key_path != "" ? var.tls_key_path : lookup(local.secret, "tls_key_path", "")
+    tls_key_path         = var.tls_key_path != "" ? var.tls_key_path : lookup(local.secret, "tls_key_path", "")
+    cloudflare_api_token = var.cloudflare_api_token != "" ? var.cloudflare_api_token : lookup(local.secret, "cloudflare_api_token", "")
+    cloudflare_zone_id   = var.cloudflare_zone_id != "" ?  var.cloudflare_zone_id : lookup(local.secret, "cloudflare_zone_id", "")
 
     # Determine protocol dynamically based on app_base_url
     protocol = startswith(local.app_base_url, "https://") ? "https" : "http" 
@@ -25,6 +36,11 @@ locals {
 # Configure the AWS provider
 provider "aws" {
   region = var.region
+}
+
+# Cloudflare provider setup
+provider "cloudflare" {
+  api_token = local.cloudflare_api_token != "" ? local.cloudflare_api_token : "dummytokenplaceholdedummytokenplaceholde"
 }
 
 # Configure the Kubernetes provider with an alias
@@ -348,13 +364,24 @@ resource "time_sleep" "wait_for_nginx_ingress" {
 
 #Create a CNAME record in Route 53 to point to the Nginx Loadbalancer External IP
 resource "aws_route53_record" "alb_cname" {
-  count = (var.app_base_url!= "" && var.route53_zone_id != "") ? 1 : 0
-  zone_id = var.route53_zone_id
+  count = (local.app_base_url!= "" && local.route53_zone_id != "") ? 1 : 0
+  zone_id = local.route53_zone_id
   # Extract the subdomain only (remove https://, http://, and the main domain part)
-  name = regex("^([^.]+)", replace(replace(var.app_base_url, "https://", ""), "http://", ""))[0]
+  name = regex("^([^.]+)", replace(replace(local.app_base_url, "https://", ""), "http://", ""))[0]
   type    = "CNAME"
   ttl     = 60
   records = [data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname]
+  depends_on = [helm_release.nginx_ingress,time_sleep.wait_for_nginx_service]
+}
+
+resource "cloudflare_record" "alb_cname" {
+  count   = local.app_base_url!= "" && local.cloudflare_zone_id != "" && local.route53_zone_id == "" ? 1 : 0
+  zone_id = local.cloudflare_zone_id
+  name    = regex("^([^.]+)", replace(replace(var.app_base_url, "https://", ""), "http://", ""))[0]
+  value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname
+  type    = "CNAME" # A record for an IPv4 address
+  ttl     = 300  # You can adjust the TTL as needed
+  proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
   depends_on = [helm_release.nginx_ingress,time_sleep.wait_for_nginx_service]
 }
 
@@ -383,15 +410,15 @@ resource "helm_release" "aws_efs_csi_driver" {
 
 # Create Bold TLS Secret
 resource "kubernetes_secret" "bold_tls" {
-  count   = var.tls_certificate_path != "" && var.tls_key_path != "" ? 1 : 0
+  count   = local.tls_certificate_path != "" && local.tls_key_path != "" ? 1 : 0
   metadata {
     name      = "bold-tls"
     namespace = var.bold_bi_namespace
   }
 
   data = {
-    "tls.crt" = file(var.tls_certificate_path)  # Path to the certificate file
-    "tls.key" = file(var.tls_key_path) # Path to the private key file
+    "tls.crt" = file(local.tls_certificate_path)  # Path to the certificate file
+    "tls.key" = file(local.tls_key_path) # Path to the private key file
   }
   type = "kubernetes.io/tls"
   depends_on = [helm_release.bold_bi]
@@ -414,7 +441,7 @@ resource "helm_release" "bold_bi" {
 
   set {
     name  = "appBaseUrl"
-    value = var.app_base_url != "" ? var.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
+    value = local.app_base_url != "" ? local.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
   }
 
   set {
@@ -496,7 +523,7 @@ output "eks_cluster_name" {
 }
 
 output "app_base_url" {
-  value = var.app_base_url
+  value = local.app_base_url
 }
 
 output "domain" {
