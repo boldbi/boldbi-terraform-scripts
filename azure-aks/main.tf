@@ -422,7 +422,7 @@ locals {
 }
 
 # Apply the modified YAML as a kubectl_manifest
-resource "kubectl_manifest" "patch_nginx_svc" {
+resource "kubectl_manifest" "nginx_issuer_apply" {
   count        = local.cloudflare_zone_id == "" ? 1 : 0 
   yaml_body    = local.issuer_yaml
   wait         = true
