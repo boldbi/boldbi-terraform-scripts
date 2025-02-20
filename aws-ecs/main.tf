@@ -10,11 +10,11 @@ locals {
 
   # Use environment variables, secrets, or user-provided inputs
   app_base_url = var.app_base_url != "" ? var.app_base_url : lookup(local.secret, "app_base_url", "")
-  db_username       = var.db_username != "" ? var.db_username : lookup(local.secret, "postgresql_username", "")
-  db_password       = var.db_password != "" ? var.db_password : lookup(local.secret, "postgresql_password", "")
-  bold_unlock_key   = var.bold_unlock_key != "" ? var.bold_unlock_key : lookup(local.secret, "bold_services_unlock_key", "")
-  boldbi_username   = var.boldbi_username != "" ? var.boldbi_username : lookup(local.secret, "bold_services_user_email", "")
-  boldbi_user_password = var.boldbi_user_password != "" ? var.boldbi_user_password : lookup(local.secret, "bold_services_user_password", "")
+  db_username       = var.db_username != "" ? var.db_username : lookup(local.secret, "db_username", "")
+  db_password       = var.db_password != "" ? var.db_password : lookup(local.secret, "db_password", "")
+  bold_unlock_key   = var.bold_unlock_key != "" ? var.bold_unlock_key : lookup(local.secret, "boldbi_unlock_key", "")
+  boldbi_username   = var.boldbi_username != "" ? var.boldbi_username : lookup(local.secret, "boldbi_email", "")
+  boldbi_user_password = var.boldbi_user_password != "" ? var.boldbi_user_password : lookup(local.secret, "boldbi_password", "")
   route53_zone_id = var.route53_zone_id != "" ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", "")
   acm_certificate_arn = var.acm_certificate_arn != "" ? var.acm_certificate_arn : lookup(local.secret, "acm_certificate_arn", "")
   
