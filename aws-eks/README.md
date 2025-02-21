@@ -44,6 +44,8 @@ Clone the Terraform scripts repository using the following command:
 cd boldbi-terraform-scripts/aws-eks
 ```
 
+![directory-structure](./images/directory-structure.png)
+
 ### Step 3: Set Environment Variables
 
 To authenticate Terraform with your AWS account, add the following environment variables to your [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variables. Alternatively, you can log in using [aws configure](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-configure.html)
