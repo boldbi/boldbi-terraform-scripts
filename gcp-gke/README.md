@@ -54,7 +54,6 @@ Additionally, you need to add other required environment variables as local [sys
 
 | system variable Name         | Required | Description                                       |
 |------------------------------|----------|---------------------------------------------------|
-| TF_VAR_db_username           | Yes      | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'azure_superuser', 'azure_pg_admin', 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
 | TF_VAR_db_password           | Yes      | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
 | TF_VAR_boldbi_email          | Yes      | Bold BI admin Email                               |
 | TF_VAR_boldbi_password       | Yes      | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
