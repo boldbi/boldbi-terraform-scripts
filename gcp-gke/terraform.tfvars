@@ -1,7 +1,7 @@
 gcp_project_id         = "syncfusion-devtest"
 gcp_region             = "us-central1"
-app_name               = "gcp"
-environment            = "st"
+app_name               = "bold"
+environment            = "demo"
 subnet_cidr_range      = "10.0.1.0/24"
 gke_initial_node_count = 1
 gke_min_node_count     = 1

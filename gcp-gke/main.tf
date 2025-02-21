@@ -179,7 +179,7 @@ resource "google_sql_database_instance" "postgres_instance" {
 
 # PostgreSQL User
 resource "google_sql_user" "db_user" {
-  name     = "postgres"
+  name     = var.db_username
   instance = google_sql_database_instance.postgres_instance.name
   password = var.db_password
 }
@@ -306,7 +306,7 @@ resource "kubernetes_secret" "bold_tls" {
 resource "cloudflare_record" "nginx_ingress" {
   count   = var.cloudflare_zone_id != "" ? 1 : 0
   zone_id = var.cloudflare_zone_id
-  name    = split(".", replace(replace(var.app_base_url_new , "https://", ""), "http://", ""))[0]
+  name    = split(".", replace(replace(var.app_base_url , "https://", ""), "http://", ""))[0]
   value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip
   type    = "A"  # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
@@ -330,7 +330,7 @@ resource "helm_release" "bold_bi" {
 
   set {
     name  = "appBaseUrl"
-    value = var.app_base_url_new != "" ? var.app_base_url_new : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}"
+    value = var.app_base_url != "" ? var.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}"
   }
 
   set {
@@ -372,7 +372,7 @@ resource "helm_release" "bold_bi" {
 
   set {
     name  = "databaseServerDetails.dbUser"
-    value = "postgres"
+    value = var.db_username
   }
 
   set {
@@ -406,5 +406,5 @@ resource "helm_release" "bold_bi" {
 
 # Outputs
 output "boldbi_access_message" {
-  value = "Access the following URL in your browser to use Bold BI: ${var.app_base_url_new}"
+  value = "Access the following URL in your browser to use Bold BI: ${var.app_base_url}"
 }

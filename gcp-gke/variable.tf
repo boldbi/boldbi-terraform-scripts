@@ -89,7 +89,7 @@ variable "bold_bi_version" {
   description = "Bold BI Version"
 }
 
-variable "app_base_url_new" {
+variable "app_base_url" {
   description = "The base URL for the Bold BI application (e.g., https://example.com). If left empty, the script will use the ALB load balancer DNS for application hosting."
   type        = string
 }
