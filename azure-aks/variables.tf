@@ -135,12 +135,12 @@ variable "storage_subnet_prefix" {
 
 ########################################################################################
 # Bold BI Deployment
-variable "bold_bi_namespace" {
+variable "boldbi_namespace" {
   type        = string
   description = "Bold BI namespace"
 }
 
-variable "bold_bi_version" {
+variable "boldbi_version" {
   type        = string
   description = "Bold BI Version"
 }
@@ -150,21 +150,21 @@ variable "app_base_url" {
   description = "The base URL for the Bold BI application (e.g., https://example.com).If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com)."
 }
 
-variable "bold_bi_unlock_key" {
+variable "boldbi_unlock_key" {
   description = "Enter Your Bold services unlock key **required for auto-deployment**"
   type        = string 
   sensitive   = true
   default     = ""
 }
 
-variable "bold_bi_email" {
+variable "boldbi_email" {
   description = "The Bold BI username **required for auto-deployment**"
   type        = string
   sensitive   = true
   default     = ""
 }
 
-variable "bold_bi_password" {
+variable "boldbi_password" {
   description = "The Bold BI user password **required for auto-deployment**"
   type        = string
   sensitive   = true
@@ -195,5 +195,19 @@ variable "cloudflare_api_token" {
   description = "Enter cloudflare api token"
   type        = string
   default     = "dummytokenplaceholdedummytokenplaceholde"
+  sensitive   = true
+}
+
+variable "boldbi_secret_vault_name" {
+  description = "Enter bold bi secret vault name"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "boldbi_secret_vault_rg_name" {
+  description = "Enter bold bi secret vault Resource group name"
+  type        = string
+  default     = ""
   sensitive   = true
 }

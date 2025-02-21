@@ -1,4 +1,4 @@
-# Deploy Bold BI Using Terraform on AWS ECS
+# Deploy Bold BI Using Terraform on AWS EKS
 
 This guide explains how to deploy Bold BI using a Terraform script. The script automates the creation of all necessary AWS resources and the deployment of Bold BI. Once the deployment is complete, you can copy and paste the APP_URL into your browser to start evaluating Bold BI.
 
@@ -20,10 +20,9 @@ Before proceeding, ensure the following tools and resources are installed and av
 The Terraform script creates the following resources:
 
 - **Application Load Balancer**
-- **ECS Cluster** (with EC2/Fargate Launch Type)
+- **EKS Cluster**
 - **EFS Storage**
 - **RDS PostgreSQL Server**
-- **Task Definitions** for Bold BI Services
 - **Security Group, VPC, Internet Gateway, and Route Table**
 - **Domain Mapping Entry** on Route 53
 
@@ -42,10 +41,10 @@ Clone the Terraform scripts repository using the following command:
 ### Step 2: Navigate to the Terraform Scripts Directory
 
 ```sh
-cd boldbi-terraform-scripts/aws-ecs
+cd boldbi-terraform-scripts/aws-eks
 ```
 
-![Directory Structure](./images/directory-structure.png)
+![directory-structure](./images/directory-structure.png)
 
 ### Step 3: Set Environment Variables
 
@@ -62,12 +61,13 @@ Other than this, we need to add the following environment variables either as a 
 |-------------------------------|----------------------------------|--------|----------------------------------------------------|
 | TF_VAR_db_username            | db_username              | Yes    | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
 | TF_VAR_db_password            | db_password              | Yes    | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
-| TF_VAR_boldbi_email        | boldbi_email         | Yes     | Bold BI admin username                           |
-| TF_VAR_boldbi_password   | boldbi_password      | Yes     | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
-| TF_VAR_boldbi_unlock_key      | boldbi_unlock_key         | Yes     | Unlock key for Bold BI                           |
+| TF_VAR_boldbi_email           | boldbi_email                     | Yes     | Bold BI admin Email                           |
+| TF_VAR_boldbi_password        | boldbi_password                  | Yes     | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
+| TF_VAR_boldbi_unlock_key      | boldbi_unlock_key                | Yes     | Unlock key for Bold BI                           |
 | TF_VAR_route53_zone_id        | route53_zone_id                  | No      | AWS Route 53 Zone ID (if applicable)             |
-| TF_VAR_acm_certificate_arn    | acm_certificate_arn              | No      | AWS ACM Certificate for SSL configuration        |
 | TF_VAR_app_base_url           | app_base_url                     | No      | Base URL for the Application                     |
+| TF_VAR_tls_certificate_path   | tls_certificate_path             | No      |For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
+| TF_VAR_tls_key_path           | tls_key_path                     | No      | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         |
 
 
 Application Variables after setting in system variables:
@@ -90,7 +90,7 @@ Application Variables after setting in AWS Secrets Manager:
 
 ### Step 4: Initialize Terraform
 
-Open PowerShell or Terminal from the `boldbi-terraform-scripts/aws-ecs` directory and run the following command:
+Open PowerShell or Terminal from the `boldbi-terraform-scripts/aws-EKS` directory and run the following command:
 
 ```sh
 terraform init
