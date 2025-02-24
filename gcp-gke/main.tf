@@ -1,10 +1,6 @@
 # Provider Configuration
 terraform {
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.0"
@@ -39,9 +35,9 @@ provider "helm" {
 }
 
 provider "kubernetes" {
-  host                   = "https://${google_container_cluster.gke_cluster.endpoint}"
+  host                   = google_container_cluster.gke_cluster.endpoint
+  cluster_ca_certificate = base64decode(google_container_cluster.gke_cluster.master_auth.0.cluster_ca_certificate)
   token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(google_container_cluster.gke_cluster.master_auth[0].cluster_ca_certificate)
 }
 
 # Create VPC Network
