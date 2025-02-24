@@ -104,9 +104,17 @@ Please wait until the startup process completes and avoid opening the URL in mul
 ## Destroy Bold BI and Resources
 To destroy Bold BI and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
 
-Before running terraform destroy, please delete the PostgreSQL databases to ensure the database server is removed successfully. Additionally, delete the VPC peering to allow the proper deletion of network-related resources.
+1. Uncomment the `google_compute_network_peering` resource in the `main.tf` file as shown below.
 
-```sh
-terraform destroy
-```
-![terraform destroy](./images/destroy.gif)
+   ![Uncomment](./images/Uncomment.png)
+
+2. Import the google_compute_network_peering resource into Terraform using the commands below.
+
+   ```sh
+   terraform import google_compute_network_peering.gke_vpc_peering projects/<project_id>/global/networks/servicenetworking-googleapis-com`
+   ```
+3. Use the terraform destroy command to delete all resources created by Terraform.
+   ```sh
+   terraform destroy
+   ```
+   ![terraform destroy](./images/destroy.gif)

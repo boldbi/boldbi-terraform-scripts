@@ -151,13 +151,6 @@ resource "google_service_networking_connection" "private_vpc_connection" {
     ignore_changes = [reserved_peering_ranges]
   }
 }
-# Use the existing VPC peering created by the Private Services Access connection
-# resource "google_compute_network_peering" "private_peering" {
-#   name         = "${var.app_name}-private-peering"
-#   network      = google_compute_network.vpc_network.id
-#   peer_network = google_service_networking_connection.private_vpc_connection.peering
-# }
- 
 
 # Cloud SQL PostgreSQL Instance
 resource "google_sql_database_instance" "postgres_instance" {
@@ -186,13 +179,16 @@ resource "google_sql_user" "db_user" {
   name     = var.db_username
   instance = google_sql_database_instance.postgres_instance.name
   password = var.db_password
+  depends_on = [google_sql_database_instance.postgres_instance]
 }
 
 # Create PostgreSQL Database
 resource "google_sql_database" "bold_services_db" {
-  name     = "bold_services"
+  name     = "bold_bi"
   instance = google_sql_database_instance.postgres_instance.name
+  depends_on = [google_sql_user.db_user]
 }
+
 
 
 # GKE Cluster Configuration
@@ -424,3 +420,11 @@ resource "helm_release" "bold_bi" {
 output "boldbi_access_message" {
   value = "Access the following URL in your browser to use Bold BI: ${var.app_base_url}"
 }
+
+# resource "google_compute_network_peering" "gke_vpc_peering" {
+#   name         = "servicenetworking-googleapis-com"
+#   network      = "projects/${var.gcp_project_id}/global/networks/${var.app_name}-vpc-${var.environment}"
+#   peer_network = "projects/${var.gcp_project_id}/global/networks/servicenetworking-googleapis-com"
+ 
+#   import_custom_routes = true
+# }
