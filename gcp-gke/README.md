@@ -113,7 +113,12 @@ To destroy Bold BI and all associated resources, run the following command from 
    ```sh
    terraform import google_compute_network_peering.gke_vpc_peering <gcp_project_id>/<app_name>-vpc-<environment>/servicenetworking-googleapis-com
    ```
-3. Use the terraform destroy command to delete all resources created by Terraform.
+3. Manually destroy the google_compute_network_peering resource using the command below.
+   ```sh
+   terraform destroy -target google_compute_network_peering.gke_vpc_peering -auto-approve
+   ```
+
+4. Use the terraform destroy command to delete all resources created by Terraform.
    ```sh
    terraform destroy
    ```
