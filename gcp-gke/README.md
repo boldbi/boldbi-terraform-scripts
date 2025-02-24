@@ -48,7 +48,7 @@ To authenticate Terraform with your Google Cloud account, add the file path of t
 
 | Variable Name                   | Required | Description                                      |
 |----------------------------------|----------|--------------------------------------------------|
-| `TF_VAR_google_credentials_json` | Yes      | Google project authentication.                  |
+| TF_VAR_google_credentials_json | Yes      | Google project authentication.                  |
 
 Additionally, you need to add other required environment variables as local [system variables](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/).
 

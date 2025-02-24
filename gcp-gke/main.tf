@@ -35,9 +35,9 @@ provider "helm" {
 }
 
 provider "kubernetes" {
-  host                   = google_container_cluster.gke_cluster.endpoint
-  cluster_ca_certificate = base64decode(google_container_cluster.gke_cluster.master_auth.0.cluster_ca_certificate)
+  host                   = "https://${google_container_cluster.gke_cluster.endpoint}"
   token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(google_container_cluster.gke_cluster.master_auth[0].cluster_ca_certificate)
 }
 
 # Create VPC Network
@@ -145,11 +145,19 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   network                 = google_compute_network.vpc_network.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+  
   # Ignore changes to avoid modification conflicts
   lifecycle {
     ignore_changes = [reserved_peering_ranges]
   }
 }
+# Use the existing VPC peering created by the Private Services Access connection
+# resource "google_compute_network_peering" "private_peering" {
+#   name         = "${var.app_name}-private-peering"
+#   network      = google_compute_network.vpc_network.id
+#   peer_network = google_service_networking_connection.private_vpc_connection.peering
+# }
+ 
 
 # Cloud SQL PostgreSQL Instance
 resource "google_sql_database_instance" "postgres_instance" {
@@ -179,6 +187,13 @@ resource "google_sql_user" "db_user" {
   instance = google_sql_database_instance.postgres_instance.name
   password = var.db_password
 }
+
+# Create PostgreSQL Database
+resource "google_sql_database" "bold_services_db" {
+  name     = "bold_services"
+  instance = google_sql_database_instance.postgres_instance.name
+}
+
 
 # GKE Cluster Configuration
 resource "google_container_cluster" "gke_cluster" {
@@ -374,6 +389,11 @@ resource "helm_release" "bold_bi" {
   set {
     name  = "databaseServerDetails.dbPassword"
     value =  var.db_password
+  }
+
+  set {
+    name  = "databaseServerDetails.dbName"
+    value =  google_sql_database.bold_services_db.name
   }
 
   set {

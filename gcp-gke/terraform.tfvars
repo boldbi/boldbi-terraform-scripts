@@ -1,4 +1,4 @@
-gcp_project_id         = "syncfusion-devtest"
+gcp_project_id         = ""
 gcp_region             = "us-central1"
 app_name               = "bold"
 environment            = "demo"
