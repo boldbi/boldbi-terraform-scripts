@@ -48,7 +48,7 @@ To authenticate Terraform with your Google Cloud account, add the file path of t
 
 | Variable Name                   | Required | Description                                      |
 |----------------------------------|----------|--------------------------------------------------|
-| `TF_VAR_google_credentials_json` | Yes      | Google project authentication.                  |
+| TF_VAR_google_credentials_json | Yes      | Google project authentication.                  |
 
 Additionally, you need to add other required environment variables as local [system variables](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/).
 
@@ -104,9 +104,22 @@ Please wait until the startup process completes and avoid opening the URL in mul
 ## Destroy Bold BI and Resources
 To destroy Bold BI and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
 
-Before running terraform destroy, please delete the PostgreSQL databases to ensure the database server is removed successfully. Additionally, delete the VPC peering to allow the proper deletion of network-related resources.
+1. Uncomment the `google_compute_network_peering` resource in the `main.tf` file as shown below.
 
-```sh
-terraform destroy
-```
-![terraform destroy](./images/destroy.gif)
+   ![Uncomment](./images/Uncomment.png)
+
+2. Import the google_compute_network_peering resource into Terraform using the commands below.
+
+   ```sh
+   terraform import google_compute_network_peering.gke_vpc_peering <gcp_project_id>/<app_name>-vpc-<environment>/servicenetworking-googleapis-com
+   ```
+3. Destroy the google_compute_network_peering resource using the command below to avoid issues in complete resource destruction.
+   ```sh
+   terraform destroy -target google_compute_network_peering.gke_vpc_peering -auto-approve
+   ```
+
+4. Use the terraform destroy command to delete all resources created by Terraform.
+   ```sh
+   terraform destroy
+   ```
+   ![terraform destroy](./images/destroy.gif)

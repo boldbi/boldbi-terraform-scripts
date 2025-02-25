@@ -1,10 +1,6 @@
 # Provider Configuration
 terraform {
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.0"
@@ -149,6 +145,7 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   network                 = google_compute_network.vpc_network.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+  
   # Ignore changes to avoid modification conflicts
   lifecycle {
     ignore_changes = [reserved_peering_ranges]
@@ -182,7 +179,17 @@ resource "google_sql_user" "db_user" {
   name     = var.db_username
   instance = google_sql_database_instance.postgres_instance.name
   password = var.db_password
+  depends_on = [google_sql_database_instance.postgres_instance]
 }
+
+# Create PostgreSQL Database
+resource "google_sql_database" "bold_services_db" {
+  name     = "bold_bi"
+  instance = google_sql_database_instance.postgres_instance.name
+  depends_on = [google_sql_user.db_user]
+}
+
+
 
 # GKE Cluster Configuration
 resource "google_container_cluster" "gke_cluster" {
@@ -381,6 +388,11 @@ resource "helm_release" "bold_bi" {
   }
 
   set {
+    name  = "databaseServerDetails.dbName"
+    value =  google_sql_database.bold_services_db.name
+  }
+
+  set {
     name  = "databaseServerDetails.dbSchema"
     value = "public" 
   }
@@ -408,3 +420,11 @@ resource "helm_release" "bold_bi" {
 output "boldbi_access_message" {
   value = "Access the following URL in your browser to use Bold BI: ${var.app_base_url}"
 }
+
+# resource "google_compute_network_peering" "gke_vpc_peering" {
+#   name         = "servicenetworking-googleapis-com"
+#   network      = "projects/${var.gcp_project_id}/global/networks/${var.app_name}-vpc-${var.environment}"
+#   peer_network = "projects/${var.gcp_project_id}/global/networks/servicenetworking-googleapis-com"
+ 
+#   import_custom_routes = true
+# }
