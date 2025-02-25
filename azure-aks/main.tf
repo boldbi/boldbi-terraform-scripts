@@ -113,6 +113,7 @@ locals {
   db_password           = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.db-password[0].value : var.db_password
   tls_certificate_path  = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-certificate-path[0].value : var.tls_certificate_path
   tls_key_path          = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-key-path[0].value : var.tls_key_path
+  output_app_base_url   = var.app_base_url != "" ? var.app_base_url : "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com"
 }
 
 
@@ -617,15 +618,6 @@ resource "kubernetes_secret" "bold_tls" {
 
 ########################################################################################
 # output
-output "Line_1" {
-  value = "Your app base URL: ${local.app_base_url}"
-  sensitive = true
-}
-
-output "Line_2" {
-  value = "Your Nginx Ingress IP address: ${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}"
-}
-
-output "NOTE" {
-  value = "If you have not mapped a domain, please map it to ${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}."
+output "Output_Massage" {
+  value = var.boldbi_secret_vault_name == "" && var.boldbi_secret_vault_rg_name == "" ? "Your app base URL:${local.output_app_base_url}" : "Please use the app-base URL provided in your Azure Key Vault"
 }

@@ -68,6 +68,8 @@ Other than this, we need to add the following environment variables either as a 
 | TF_VAR_route53_zone_id        | route53_zone_id                  | No      | AWS Route 53 Zone ID (if applicable)             |
 | TF_VAR_acm_certificate_arn    | acm_certificate_arn              | No      | AWS ACM Certificate for SSL configuration        |
 | TF_VAR_app_base_url           | app_base_url                     | No      | Base URL for the Application                     |
+| TF_VAR_cloudflare_api_token   | cloudflare_api_token             | No     | Cloudflare API Token for DNS mapping on cloudflare|
+| TF_VAR_cloudflare_zone_id     | cloudflare_zone_id               | No     | Cloudflare zone ID for DNS mapping on cloudflare  |
 
 
 Application Variables after setting in system variables:

@@ -12,14 +12,30 @@ locals {
   app_base_url = var.app_base_url != "" ? var.app_base_url : lookup(local.secret, "app_base_url", "")
   db_username       = var.db_username != "" ? var.db_username : lookup(local.secret, "db_username", "")
   db_password       = var.db_password != "" ? var.db_password : lookup(local.secret, "db_password", "")
-  bold_unlock_key   = var.bold_unlock_key != "" ? var.bold_unlock_key : lookup(local.secret, "boldbi_unlock_key", "")
-  boldbi_username   = var.boldbi_username != "" ? var.boldbi_username : lookup(local.secret, "boldbi_email", "")
-  boldbi_user_password = var.boldbi_user_password != "" ? var.boldbi_user_password : lookup(local.secret, "boldbi_password", "")
+  boldbi_unlock_key   = var.boldbi_unlock_key != "" ? var.boldbi_unlock_key : lookup(local.secret, "boldbi_unlock_key", "")
+  boldbi_email   = var.boldbi_email != "" ? var.boldbi_email : lookup(local.secret, "boldbi_email", "")
+  boldbi_password = var.boldbi_password != "" ? var.boldbi_password : lookup(local.secret, "boldbi_password", "")
   route53_zone_id = var.route53_zone_id != "" ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", "")
   acm_certificate_arn = var.acm_certificate_arn != "" ? var.acm_certificate_arn : lookup(local.secret, "acm_certificate_arn", "")
+  cloudflare_api_token = var.cloudflare_api_token != "" ? var.cloudflare_api_token : lookup(local.secret, "cloudflare_api_token", "")
+  cloudflare_zone_id = var.cloudflare_zone_id != "" ? var.cloudflare_zone_id : lookup(local.secret, "cloudflare_zone_id", "")
   
   # Determine protocol dynamically based on app_base_url
   protocol = startswith(local.app_base_url, "https://") ? "https" : "http" 
+}
+
+terraform {
+  required_providers {
+      cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 3.0"
+    }
+  }
+}
+
+# Cloudflare provider setup
+provider "cloudflare" {
+  api_token = local.cloudflare_api_token != "" ? local.cloudflare_api_token : "dummytokenplaceholdedummytokenplaceholde"
 }
 
 # Define Resource provider.
@@ -291,12 +307,22 @@ resource "aws_lb" "ecs_alb" {
 }
 # Create a CNAME record in Route 53 to point to the ALB
 resource "aws_route53_record" "alb_cname" {
-  count = (var.app_base_url != "" && var.route53_zone_id != "") ? 1 : 0
-  zone_id = var.route53_zone_id
-  name    = replace(replace(var.app_base_url, "https://", ""), "http://", "")
+  count = (local.app_base_url != "" && local.route53_zone_id != "" && local.cloudflare_zone_id == "" ) ? 1 : 0
+  zone_id = local.route53_zone_id
+  name    = replace(replace(local.app_base_url, "https://", ""), "http://", "")
   type    = "CNAME"
   ttl     = 60
   records = [aws_lb.ecs_alb.dns_name]  # Point to the ALB's DNS name
+}
+
+resource "cloudflare_record" "alb_cname" {
+  count = (local.app_base_url != "" && local.route53_zone_id == "" && local.cloudflare_zone_id != "" ) ? 1 : 0
+  zone_id = local.cloudflare_zone_id
+  name    = replace(replace(local.app_base_url, "https://", ""), "http://", "")
+  value   = aws_lb.ecs_alb.dns_name
+  type    = "CNAME"  # A record for an IPv4 address
+  ttl     = 60  # You can adjust the TTL as needed
+  proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
 }
 
 # Launch Configuration for ECS EC2 Instances
@@ -482,15 +508,15 @@ resource "aws_ecs_task_definition" "id_ums_task" {
       },
       {
         name      = "BOLD_SERVICES_UNLOCK_KEY"
-        value = local.bold_unlock_key
+        value = local.boldbi_unlock_key
       },
       {
         name      = "BOLD_SERVICES_USER_EMAIL"
-        value = local.boldbi_username
+        value = local.boldbi_email
       },
       {
         name      = "BOLD_SERVICES_USER_PASSWORD"
-        value = local.boldbi_user_password
+        value = local.boldbi_password
       }
       # {
       #   name      = "BOLD_SERVICES_DB_NAME"

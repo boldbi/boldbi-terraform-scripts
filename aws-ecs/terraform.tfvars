@@ -1,7 +1,7 @@
 # Provider Configuration
 region = "us-east-1"
-app_name = "demo"
-environment = "env"
+app_name = "bold"
+environment = "demo"
 
 # Bold BI Deployment Configuration
 bold_services_hosting_environment = "k8s"
