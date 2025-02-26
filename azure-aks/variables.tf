@@ -202,12 +202,10 @@ variable "boldbi_secret_vault_name" {
   description = "Enter bold bi secret vault name"
   type        = string
   default     = ""
-  sensitive   = true
 }
 
 variable "boldbi_secret_vault_rg_name" {
   description = "Enter bold bi secret vault Resource group name"
   type        = string
   default     = ""
-  sensitive   = true
 }
