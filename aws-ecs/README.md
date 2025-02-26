@@ -56,7 +56,7 @@ To authenticate Terraform with your AWS account, add the following environment v
 | AWS_ACCESS_KEY_ID             | Yes      | AWS access key for authentication                 |
 | AWS_SECRET_ACCESS_KEY         | Yes      | AWS secret key for authentication                 |
 
-Other than this, we need to add the following environment variables either as a local system variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
+Other than this, we need to add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
 
 | system variable               |AWS Secrets Manager Variable Name |Required| **Description**                                    |
 |-------------------------------|----------------------------------|--------|----------------------------------------------------|

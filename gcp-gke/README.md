@@ -50,7 +50,7 @@ To authenticate Terraform with your Google Cloud account, add the file path of t
 |----------------------------------|----------|--------------------------------------------------|
 | TF_VAR_google_credentials_json | Yes      | Google project authentication.                  |
 
-Additionally, you need to add other required environment variables as local [system variables](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/).
+Additionally, you need to add other required environment variables as [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variables.
 
 | system variable Name         | Required | Description                                       |
 |------------------------------|----------|---------------------------------------------------|
@@ -62,8 +62,8 @@ Additionally, you need to add other required environment variables as local [sys
 | TF_VAR_app_base_url          | Yes      | The app_base_url variable is used as the base URL for the Bold BI application.(e.g., https://example.com).<br> It is mandatory and will be mapped to the Nginx server's IP using a Cloudflare domain, as configured by the Terraform script.<br>                                          |
 | TF_VAR_cloudflare_api_token  | Yes      | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id    | Yes      | Cloudflare zone ID for DNS mapping on cloudflare  |
-| TF_VAR_tls_certificate_path  | Yes      |For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
-| TF_VAR_tls_key_path          | Yes      | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         | 
+| TF_VAR_tls_certificate_path  | Yes      | For apply SSL creatificate on GKE cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
+| TF_VAR_tls_key_path          | Yes      | For apply SSL private key on GKE cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         | 
 
 Variables after setting in system variables:
 
