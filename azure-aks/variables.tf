@@ -154,21 +154,18 @@ variable "boldbi_unlock_key" {
   description = "Enter Your Bold services unlock key **required for auto-deployment**"
   type        = string 
   sensitive   = true
-  default     = ""
 }
 
 variable "boldbi_email" {
   description = "The Bold BI username **required for auto-deployment**"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "boldbi_password" {
   description = "The Bold BI user password **required for auto-deployment**"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "tls_certificate_path" {
@@ -206,6 +203,24 @@ variable "boldbi_secret_vault_name" {
 
 variable "boldbi_secret_vault_rg_name" {
   description = "Enter bold bi secret vault Resource group name"
+  type        = string
+  default     = ""
+}
+
+variable "azure_domain_sub_id" {
+  description = "Enter your Domain Subscription ID"
+  type        = string
+  default     = ""
+}
+
+variable "azure_domain_name" {
+  description = "Enter your Domain Name"
+  type        = string
+  default     = ""
+}
+
+variable "azure_domain_rg_name" {
+  description = "Enter your Domain Resource group name"
   type        = string
   default     = ""
 }
