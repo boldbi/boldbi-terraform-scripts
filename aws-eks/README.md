@@ -55,7 +55,7 @@ To authenticate Terraform with your AWS account, add the following environment v
 | AWS_ACCESS_KEY_ID             | Yes      | AWS access key for authentication                 |
 | AWS_SECRET_ACCESS_KEY         | Yes      | AWS secret key for authentication                 |
 
-Other than this, we need to add the following environment variables either as a local system variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
+Other than this, we need to add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
 
 | system variable               |AWS Secrets Manager Variable Name |Required| **Description**                                    |
 |-------------------------------|----------------------------------|--------|----------------------------------------------------|
@@ -66,8 +66,8 @@ Other than this, we need to add the following environment variables either as a 
 | TF_VAR_boldbi_unlock_key      | boldbi_unlock_key                | Yes     | Unlock key for Bold BI                           |
 | TF_VAR_route53_zone_id        | route53_zone_id                  | No      | AWS Route 53 Zone ID (if applicable)             |
 | TF_VAR_app_base_url           | app_base_url                     | No      | Base URL for the Application                     |
-| TF_VAR_tls_certificate_path   | tls_certificate_path             | No      |For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
-| TF_VAR_tls_key_path           | tls_key_path                     | No      | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         |
+| TF_VAR_tls_certificate_path   | tls_certificate_path             | No      | For apply SSL creatificate on EKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
+| TF_VAR_tls_key_path           | tls_key_path                     | No      | For apply SSL private key on EKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         |
 
 
 Application Variables after setting in system variables:

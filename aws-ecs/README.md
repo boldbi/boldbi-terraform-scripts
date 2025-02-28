@@ -56,7 +56,7 @@ To authenticate Terraform with your AWS account, add the following environment v
 | AWS_ACCESS_KEY_ID             | Yes      | AWS access key for authentication                 |
 | AWS_SECRET_ACCESS_KEY         | Yes      | AWS secret key for authentication                 |
 
-Other than this, we need to add the following environment variables either as a local system variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
+Other than this, we need to add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variable or in [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html) as shown below:
 
 | system variable               |AWS Secrets Manager Variable Name |Required| **Description**                                    |
 |-------------------------------|----------------------------------|--------|----------------------------------------------------|
@@ -68,6 +68,8 @@ Other than this, we need to add the following environment variables either as a 
 | TF_VAR_route53_zone_id        | route53_zone_id                  | No      | AWS Route 53 Zone ID (if applicable)             |
 | TF_VAR_acm_certificate_arn    | acm_certificate_arn              | No      | AWS ACM Certificate for SSL configuration        |
 | TF_VAR_app_base_url           | app_base_url                     | No      | Base URL for the Application                     |
+| TF_VAR_cloudflare_api_token   | cloudflare_api_token             | No     | Cloudflare API Token for DNS mapping on cloudflare|
+| TF_VAR_cloudflare_zone_id     | cloudflare_zone_id               | No     | Cloudflare zone ID for DNS mapping on cloudflare  |
 
 
 Application Variables after setting in system variables:

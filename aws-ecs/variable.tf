@@ -119,20 +119,20 @@ variable "db_password" {
   nullable    = false
 }
 
-variable "bold_unlock_key" {
+variable "boldbi_unlock_key" {
   description = "The Bold services unlock key"
   type        = string
   sensitive   = true
   nullable    = false
 }
 
-variable "boldbi_username" {
+variable "boldbi_email" {
   description = "The Bold BI admin username"
   type        = string
   nullable    = false
 }
 
-variable "boldbi_user_password" {
+variable "boldbi_password" {
   description = "The Bold BI admin password"
   type        = string
   sensitive   = true
@@ -181,5 +181,20 @@ variable "route53_zone_id" {
 variable "acm_certificate_arn" {
   description = "The ARN of the SSL/TLS certificate for HTTPS. If left empty, SSL will not be enabled."
   type        = string
+  sensitive   = true
+}
+
+# Cloudflare provider
+variable "cloudflare_zone_id" {
+  description = "Enter cloudflare zone id"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "cloudflare_api_token" {
+  description = "Enter cloudflare api token"
+  type        = string
+  default     = "dummytokenplaceholdedummytokenplaceholde"
   sensitive   = true
 }
