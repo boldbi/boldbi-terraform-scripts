@@ -66,6 +66,8 @@ Other than this, we need to add the following environment variables either as a 
 | TF_VAR_boldbi_unlock_key      | boldbi_unlock_key                | Yes     | Unlock key for Bold BI                           |
 | TF_VAR_route53_zone_id        | route53_zone_id                  | No      | AWS Route 53 Zone ID (if applicable)             |
 | TF_VAR_app_base_url           | app_base_url                     | No      | Base URL for the Application                     |
+| TF_VAR_cloudflare_api_token   | cloudflare_api_token             | No     | Cloudflare API Token for DNS mapping on cloudflare|
+| TF_VAR_cloudflare_zone_id     | cloudflare_zone_id               | No     | Cloudflare zone ID for DNS mapping on cloudflare  |
 | TF_VAR_tls_certificate_path   | tls_certificate_path             | No      | For apply SSL creatificate on EKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
 | TF_VAR_tls_key_path           | tls_key_path                     | No      | For apply SSL private key on EKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         |
 
