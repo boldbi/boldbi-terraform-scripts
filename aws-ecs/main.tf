@@ -1363,6 +1363,7 @@ resource "aws_ecs_service" "bold_etl_service_fargate" {
 
 # Create Listener for HTTP (80) and HTTPS (443)
 resource "aws_lb_listener" "http" {
+  count = local.protocol == "http" ? 1 : 0
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "80"
   protocol          = "HTTP"
@@ -1374,6 +1375,7 @@ resource "aws_lb_listener" "http" {
   depends_on = [aws_lb.ecs_alb]
 }
 resource "aws_lb_listener" "https" {
+  count = local.protocol == "https" ? 1 : 0
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "443"
   protocol          = "HTTPS"
@@ -1510,9 +1512,9 @@ resource "aws_lb_target_group" "bold_etl_tg" {
 }
 # Define ALB Path-Based Routing
 resource "aws_lb_listener_rule" "bold_etl_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 10
-
+  
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.bold_etl_tg.arn
@@ -1525,7 +1527,7 @@ resource "aws_lb_listener_rule" "bold_etl_rule" {
   }
 }
 resource "aws_lb_listener_rule" "bi_api_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 20
 
   action {
@@ -1541,7 +1543,7 @@ resource "aws_lb_listener_rule" "bi_api_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_jobs_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 30
 
   action {
@@ -1557,7 +1559,7 @@ resource "aws_lb_listener_rule" "bi_jobs_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_dataservice_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 40
 
   action {
@@ -1573,7 +1575,7 @@ resource "aws_lb_listener_rule" "bi_dataservice_rule" {
 }
 
 resource "aws_lb_listener_rule" "bi_web_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 50
 
   action {
@@ -1589,7 +1591,7 @@ resource "aws_lb_listener_rule" "bi_web_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_api_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 60
 
   action {
@@ -1605,7 +1607,7 @@ resource "aws_lb_listener_rule" "id_api_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_ums_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 70
 
   action {
@@ -1621,7 +1623,7 @@ resource "aws_lb_listener_rule" "id_ums_rule" {
 }
 
 resource "aws_lb_listener_rule" "id_web_rule" {
-  listener_arn = local.protocol == "https" ? aws_lb_listener.https.arn : aws_lb_listener.http.arn
+  listener_arn = local.protocol == "https" ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
   priority     = 80
 
   action {
