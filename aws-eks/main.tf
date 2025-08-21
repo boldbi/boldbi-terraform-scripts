@@ -30,6 +30,10 @@ data "aws_secretsmanager_secret_version" "boldbi_secret" {
 }
 
 locals {
+  common_name = "terraform-${var.app_name}-${var.environment}"
+}
+
+locals {
     # Decode secrets only if the secret ARN is provided
     secret = length(data.aws_secretsmanager_secret_version.boldbi_secret) > 0 ? jsondecode(data.aws_secretsmanager_secret_version.boldbi_secret[0].secret_string) : {}
     # Use environment variables, secrets, or user-provided inputs
@@ -84,7 +88,7 @@ resource "aws_vpc" "eks_vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.app_name}-eks-vpc-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -96,7 +100,7 @@ resource "aws_subnet" "eks_public_subnet" {
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   tags = {
-    Name = "${var.app_name}-eks-public-subnet-${var.environment}-${count.index}"
+    Name = local.common_name
   }
 }
 
@@ -105,7 +109,7 @@ resource "aws_internet_gateway" "eks_igw" {
   vpc_id = aws_vpc.eks_vpc.id
 
   tags = {
-    Name = "${var.app_name}-eks-igw-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -119,7 +123,7 @@ resource "aws_route_table" "eks_route_table" {
   }
 
   tags = {
-    Name = "${var.app_name}-eks-route-table-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -192,7 +196,7 @@ resource "aws_security_group" "eks_sg" {
   }
 
   tags = {
-    Name = "${var.app_name}-eks_sg-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -201,7 +205,7 @@ resource "aws_db_subnet_group" "postgresql_subnet_group" {
   subnet_ids = aws_subnet.eks_public_subnet[*].id
 
   tags = {
-    Name = "${var.app_name}-postgresql-subnet-group-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -219,7 +223,7 @@ resource "aws_db_instance" "postgresql" {
   db_subnet_group_name    = aws_db_subnet_group.postgresql_subnet_group.name
   skip_final_snapshot     = true
   tags = {
-    Name = "${var.app_name}-bold-postgresql-db-${var.environment}"
+    Name = local.common_name
   }
   depends_on = [ aws_db_subnet_group.postgresql_subnet_group,aws_security_group.eks_sg ]
 }
@@ -229,7 +233,7 @@ resource "aws_efs_file_system" "app_data_efs" {
   creation_token = "${var.app_name}-app-data-efs-${var.environment}"
   encrypted = true
   tags = {
-    Name = "${var.app_name}-app-data-efs-${var.environment}"
+    Name = local.common_name
   }
   
 }
@@ -269,7 +273,9 @@ resource "aws_eks_cluster" "eks_cluster" {
     subnet_ids = aws_subnet.eks_public_subnet[*].id
     security_group_ids = [aws_security_group.eks_sg.id]  # ✅ Attach Security Group
   }
-
+  tags = {
+    Name = local.common_name
+  }
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }
 
@@ -300,6 +306,9 @@ resource "aws_eks_node_group" "eks_nodes" {
     desired_size = 2
     max_size     = 3
     min_size     = 1
+  }
+  tags = {
+    Name = local.common_name
   }
   depends_on = [ aws_eks_cluster.eks_cluster ]
 }
@@ -531,4 +540,9 @@ output "app_base_url" {
 
 output "domain" {
   value = "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
+}
+
+output "resource_name_tag" {
+  value = local.common_name
+  description = "The tag applied to all AWS resources created (Name key)"
 }

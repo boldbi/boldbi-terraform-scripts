@@ -15,6 +15,31 @@ Before proceeding, ensure the following tools and resources are installed and av
 
 ---
 
+## Compatibility
+
+### Tested Platforms and Versions
+
+Bold BI Terraform EKS deployments have been tested and validated with the following component and provider versions:
+
+| **Component**               | **Version(s)**    | **Description**                                     | **Status**   |
+|-----------------------------|-------------------|-----------------------------------------------------|--------------|
+| **Terraform CLI**           | 1.10.5, 1.12.2    | Infrastructure as Code engine for all provisioning  | ✅ Tested    |
+| **AWS Provider**            | 6.9.0             | AWS infrastructure provisioning (VPC, EKS, RDS, etc.) | ✅ Tested    |
+| **Kubernetes Provider**     | 2.38.0            | Kubernetes resource integration                     | ✅ Tested    |
+| **Helm Provider**           | 3.0.2             | Helm chart deployment into Kubernetes               | ✅ Tested    |
+| **Cloudflare Provider**     | 3.35.0            | DNS/Cloudflare integration (optional, if using)     | ✅ Tested    |
+| **Time Provider**           | 0.13.1            | Utility provider for timeouts and waits             | ✅ Tested    |
+
+---
+
+### BoldBI Kubernetes Compatibility
+
+| **BoldBI Version** | **Kubernetes Supported Versions** | **ingress-nginx Tested Versions** | **Tested Environments** | **Release Date** |
+|--------------------|-----------------------------------|-----------------------------------|------------------------|------------------|
+| Latest (13.1.10)    | 1.32.x, 1.31.x, 1.30.x            | 4.11.3, 4.10.0                    | EKS 1.32     | 2025-07-15       |
+
+---
+
 ## Overview of the Script
 
 The Terraform script creates the following resources:
@@ -135,3 +160,21 @@ To destroy Bold BI and all associated resources, run the following command from 
 terraform destroy
 ```
 ![Terraform Destroy](https://github.com/user-attachments/assets/1c9ea18e-3c83-4398-a59d-f6e3d0f1b3a9)
+
+---
+
+### **Tagging for Resource Grouping, Monitoring, and Cost Management**
+
+All AWS resources created by this Terraform script are tagged identically using:
+
+- **Key:** `Name`
+- **Value pattern:**  
+  `terraform-<app_name>-<environment>`  
+  _Example_: `terraform-boldbi-dev`
+
+**This enables:**
+
+- Grouping, filtering, and cost allocation in the AWS Console, CLI, and Cost Explorer.
+- Fast resource identification for operations and cleanup.
+
+**Note:** If you planned to modify tag name please update your values on `common_name` on main.tf file.
