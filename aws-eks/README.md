@@ -36,7 +36,7 @@ Bold BI Terraform EKS deployments have been tested and validated with the follow
 
 | **BoldBI Version** | **Kubernetes Supported Versions** | **ingress-nginx Tested Versions** | **Tested Environments** | **Release Date** |
 |--------------------|-----------------------------------|-----------------------------------|------------------------|------------------|
-| Latest (13.1.10)    | 1.32.x, 1.31.x, 1.30.x            | 4.11.3, 4.10.0                    | EKS 1.32     | 2025-07-15       |
+| Latest (13.1.10)    | 1.32.x, 1.31.x, 1.30.x            | 4.0.10                  | EKS 1.32     | 2025-07-15       |
 
 ---
 
