@@ -1,6 +1,6 @@
 # Provider Configuration
 region = "us-east-1"
-app_name = "bi"
+app_name = "boldbi"
 environment = "dev"
 vpc_cidr = "10.0.0.0/16"
 
@@ -9,7 +9,7 @@ install_optional_libs = "mongodb,mysql,influxdb,snowflake,oracle,clickhouse,goog
 
 node_instance_type = "t3.xlarge"
 
-bold_bi_version = "10.1.18"
+bold_bi_version = "13.1.10"
 
 instance_class = "db.t3.micro"
 # AWS secret manager ARN

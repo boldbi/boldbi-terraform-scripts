@@ -1,16 +1,36 @@
 terraform {
   required_providers {
-      cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 3.0"
-    }
-  }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "6.9.0" 
+    } 
+    kubernetes = { 
+      source  = "hashicorp/kubernetes" 
+      version = "2.38.0" 
+    } 
+    helm = { 
+      source  = "hashicorp/helm" 
+      version = "3.0.2" 
+    } 
+    cloudflare = { 
+      source  = "cloudflare/cloudflare" 
+      version = "3.35.0" 
+    } 
+    time = { 
+      source  = "hashicorp/time" 
+      version = "0.13.1" 
+    } 
+  } 
 }
 
 # Fetching the latest version of the secret from AWS Secrets Manager
 data "aws_secretsmanager_secret_version" "boldbi_secret" {
   count     = var.boldbi_secret_arn != "" ? 1 : 0
   secret_id = var.boldbi_secret_arn
+}
+
+locals {
+  common_name = "terraform-${var.app_name}-${var.environment}"
 }
 
 locals {
@@ -52,7 +72,7 @@ provider "kubernetes" {
 
 # Configure the Helm provider using the aliased Kubernetes provider
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = data.aws_eks_cluster.eks_cluster.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks_cluster.certificate_authority[0].data)
     token                  = data.aws_eks_cluster_auth.eks_cluster_auth.token
@@ -68,7 +88,7 @@ resource "aws_vpc" "eks_vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.app_name}-eks-vpc-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -80,7 +100,7 @@ resource "aws_subnet" "eks_public_subnet" {
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   tags = {
-    Name = "${var.app_name}-eks-public-subnet-${var.environment}-${count.index}"
+    Name = local.common_name
   }
 }
 
@@ -89,7 +109,7 @@ resource "aws_internet_gateway" "eks_igw" {
   vpc_id = aws_vpc.eks_vpc.id
 
   tags = {
-    Name = "${var.app_name}-eks-igw-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -103,7 +123,7 @@ resource "aws_route_table" "eks_route_table" {
   }
 
   tags = {
-    Name = "${var.app_name}-eks-route-table-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -176,7 +196,7 @@ resource "aws_security_group" "eks_sg" {
   }
 
   tags = {
-    Name = "${var.app_name}-eks_sg-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -185,7 +205,7 @@ resource "aws_db_subnet_group" "postgresql_subnet_group" {
   subnet_ids = aws_subnet.eks_public_subnet[*].id
 
   tags = {
-    Name = "${var.app_name}-postgresql-subnet-group-${var.environment}"
+    Name = local.common_name
   }
 }
 
@@ -203,7 +223,7 @@ resource "aws_db_instance" "postgresql" {
   db_subnet_group_name    = aws_db_subnet_group.postgresql_subnet_group.name
   skip_final_snapshot     = true
   tags = {
-    Name = "${var.app_name}-bold-postgresql-db-${var.environment}"
+    Name = local.common_name
   }
   depends_on = [ aws_db_subnet_group.postgresql_subnet_group,aws_security_group.eks_sg ]
 }
@@ -213,7 +233,7 @@ resource "aws_efs_file_system" "app_data_efs" {
   creation_token = "${var.app_name}-app-data-efs-${var.environment}"
   encrypted = true
   tags = {
-    Name = "${var.app_name}-app-data-efs-${var.environment}"
+    Name = local.common_name
   }
   
 }
@@ -253,7 +273,9 @@ resource "aws_eks_cluster" "eks_cluster" {
     subnet_ids = aws_subnet.eks_public_subnet[*].id
     security_group_ids = [aws_security_group.eks_sg.id]  # ✅ Attach Security Group
   }
-
+  tags = {
+    Name = local.common_name
+  }
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }
 
@@ -284,6 +306,9 @@ resource "aws_eks_node_group" "eks_nodes" {
     desired_size = 2
     max_size     = 3
     min_size     = 1
+  }
+  tags = {
+    Name = local.common_name
   }
   depends_on = [ aws_eks_cluster.eks_cluster ]
 }
@@ -329,15 +354,15 @@ resource "helm_release" "nginx_ingress" {
 
   create_namespace = true
 
-  set {
-    name  = "controller.replicaCount"
-    value = "1"  # Number of replicas for high availability
-  }
-
-  set {
-    name  = "controller.service.externalTrafficPolicy"
-    value = "Local"
-  }
+  set = [
+    {
+      name  = "controller.replicaCount"
+      value = "1"  # Number of replicas for high availability
+    },
+    {
+      name  = "controller.service.externalTrafficPolicy"
+      value = "Local"
+    }]
 
   depends_on = [aws_eks_cluster.eks_cluster, aws_eks_node_group.eks_nodes]
 }
@@ -395,15 +420,14 @@ resource "helm_release" "aws_efs_csi_driver" {
   create_namespace = false
 
   # Any additional Helm values can be set here
-  set {
+  set = [ {
     name  = "controller.serviceAccount.create"
     value = "true"
-  }
-
-  set {
+  },
+  {
     name  = "controller.serviceAccount.name"
     value = "efs-csi-controller-sa"
-  }
+  }]
 
   depends_on = [aws_eks_cluster.eks_cluster]  # Ensure the EKS cluster exists before installing
 }
@@ -434,78 +458,66 @@ resource "helm_release" "bold_bi" {
 
   create_namespace = true
 
-  set {
+  set =[{
     name  = "namespace"
     value = var.bold_bi_namespace
-  }
-
-  set {
+  },
+  {
     name  = "appBaseUrl"
     value = local.app_base_url != "" ? local.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
-  }
-
-  set {
+  },
+  {
     name  = "image.tag"
     value =  var.bold_bi_version
-  }
-  set {
+  },
+  {
     name  = "loadBalancer.type"
     value = "nginx"
-  }
-  set {
+  },
+  {
     name  = "clusterProvider"
     value = "eks" 
-  }
-
-  set {
+  },
+  {
     name  = "persistentVolume.eks.efsFileSystemId"
     value = aws_efs_file_system.app_data_efs.id
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbType"
     value = "postgresql" 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbHost"
     value =  aws_db_instance.postgresql.address
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbPort"
     value = "5432" 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbUser"
     value = local.db_username
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbPassword"
     value =  local.db_password
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbSchema"
     value = "public" 
-  }
-
-  set {
+  },
+  {
     name  = "rootUserDetails.email"
     value = local.boldbi_email
-  }
-
-  set {
+  },
+  {
     name  = "rootUserDetails.password"
     value = local.boldbi_password
-  }
-
-  set {
+  },
+  {
     name  = "licenseKeyDetails.licenseKey"
     value = local.boldbi_unlock_key
-  }
+  }]
   depends_on = [
     
   ]
@@ -528,4 +540,9 @@ output "app_base_url" {
 
 output "domain" {
   value = "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
+}
+
+output "resource_name_tag" {
+  value = local.common_name
+  description = "The tag applied to all AWS resources created (Name key)"
 }
