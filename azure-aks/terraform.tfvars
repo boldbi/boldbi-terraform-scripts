@@ -28,6 +28,6 @@ storage_subnet_prefix = ["10.1.3.0/24"]
 ########################################################################################
 # Bold BI Deployment
 boldbi_namespace       = "bold-services"
-boldbi_version         = "9.1.73"
+boldbi_version         = "13.1.10"
 boldbi_secret_vault_name = ""
 boldbi_secret_vault_rg_name = ""
