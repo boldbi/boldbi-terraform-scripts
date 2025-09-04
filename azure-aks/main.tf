@@ -7,7 +7,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.0"
+      version = "2.38.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -15,7 +15,7 @@ terraform {
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 3.0"
+      version = "3.35.0"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
@@ -184,7 +184,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = azurerm_kubernetes_cluster.aks.kube_config.0.host
     cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.aks.kube_config.0.cluster_ca_certificate)
     client_certificate     = base64decode(azurerm_kubernetes_cluster.aks.kube_config.0.client_certificate)
@@ -418,15 +418,14 @@ resource "helm_release" "nginx_ingress" {
 
   create_namespace = true
 
-  set {
+  set = [{
     name  = "controller.replicaCount"
     value = "1"  # Number of replicas for high availability
-  }
-
-  set {
+  },
+  {
     name  = "controller.service.externalTrafficPolicy"
     value = "Local"
-  }
+  }]
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
@@ -442,15 +441,14 @@ resource "helm_release" "cert_manager" {
 
   create_namespace = true
 
-  set {
+  set = [{
     name  = "installCRDs"
     value = "true" # Values should be strings in Terraform
-  }
-
-  set {
+  },
+  {
     name  = "global.leaderElection.namespace"
     value = "cert-manager"
-  }
+  }]
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
 
@@ -498,80 +496,66 @@ resource "helm_release" "bold_bi" {
 
   create_namespace = true
 
-  set {
+  set = [{
     name  = "namespace"
     value = var.boldbi_namespace
-  }
-
-  set {
+  },
+  {
     name  = "appBaseUrl"
     value = local.app_base_url
-  }
-
-  set {
+  },
+  {
     name  = "image.tag"
     value =  var.boldbi_version
-  }
-
-  set {
+  },
+  {
     name  = "clusterProvider"
     value = "aks" 
-  }
-
-  set {
+  },
+  {
     name  = "persistentVolume.aks.nfs.fileShareName"
     value = "${azurerm_storage_account.storage.name}/${azurerm_storage_share.nfs_share.name}"
-  }
-
-  set {
+  },
+  {
     name  = "persistentVolume.aks.nfs.hostName"
     value = "${azurerm_storage_account.storage.name}.file.core.windows.net" 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbType"
     value = "postgresql" 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbHost"
     value =  azurerm_postgresql_flexible_server.postgres.fqdn
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbPort"
     value = "5432" 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbUser"
     value = local.db_username 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbPassword"
     value =  local.db_password
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbSchema"
     value = "public" 
-  }
-
-  set {
+  },
+  {
     name  = "rootUserDetails.email"
     value = local.boldbi_email 
-  }
-
-  set {
+  },
+  {
     name  = "rootUserDetails.password"
     value = local.boldbi_password 
-  }
-
-  set {
+  },
+  {
     name  = "licenseKeyDetails.licenseKey"
     value = local.boldbi_unlock_key
-  }
+  }]
   depends_on = [
     helm_release.nginx_ingress,
     azurerm_private_dns_zone_virtual_network_link.postgres_dns_vnet_link,
