@@ -43,7 +43,7 @@ provider "azurerm" {
   tenant_id       = var.azure_tenant_id
 }
 
-# Fetch the existing Azure DNS Zone in Subscription A
+# Fetch the existing Azure DNS Zone in Subscription.
 data "azurerm_dns_zone" "azure_zone" {
   count               = var.azure_domain_name != "" && var.azure_domain_rg_name != "" ? 1 : 0
   provider            = azurerm.azure_domain_subscription
