@@ -101,14 +101,14 @@ variable "db_username" {
   type        = string
   nullable    = false
   sensitive   = true
-  description = "Enter Your PostgreSQL username  **required**"
+  description = "Enter Your PostgreSQL username  required (or) Skip it if you have updated on Key-vault"
 }
 
 variable "db_password" {
   type        = string
   nullable    = false
   sensitive   = true
-  description = "Enter Your PostgreSQL password **required**"
+  description = "Enter Your PostgreSQL password required (or) Skip it if you have updated on Key-vault"
 }
 
 variable "postgres_storage_gb" {
@@ -151,19 +151,20 @@ variable "app_base_url" {
 }
 
 variable "boldbi_unlock_key" {
-  description = "Enter Your Bold services unlock key **required for auto-deployment**"
-  type        = string 
+  description = "Enter Your Bold services unlock key required for auto-deployment (or) Skip it if you have updated on Key-vault"
+  type        = string
+  default     = ""
   sensitive   = true
 }
 
 variable "boldbi_email" {
-  description = "The Bold BI username **required for auto-deployment**"
+  description = "The Bold BI username required for auto-deployment (or) Skip it if you have updated on Key-vault"
   type        = string
   sensitive   = true
 }
 
 variable "boldbi_password" {
-  description = "The Bold BI user password **required for auto-deployment**"
+  description = "The Bold BI user password required for auto-deployment (or) Skip it if you have updated on Key-vault"
   type        = string
   sensitive   = true
 }

@@ -59,102 +59,126 @@ data "azurerm_key_vault" "bold_bi_secret" {
   resource_group_name = var.boldbi_secret_vault_rg_name
 }
 
-# Retrieve Storage Account Name from Key Vault Secret
-data "azurerm_key_vault_secret" "app-base-url" {
+# NEW: List all secrets in the Key Vault (only if vault configured)
+data "azurerm_key_vault_secrets" "all_secrets" {
   count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
+}
+
+# UPDATED: Conditional data sources for each secret (only fetch if exists)
+data "azurerm_key_vault_secret" "app-base-url" {
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "app-base-url") ? 1 : 0
   name         = "app-base-url"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "boldbi-email" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "boldbi-email") ? 1 : 0
   name         = "boldbi-email"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "boldbi-password" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "boldbi-password") ? 1 : 0
   name         = "boldbi-password"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "boldbi-unlock-key" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "boldbi-unlock-key") ? 1 : 0
   name         = "boldbi-unlock-key"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "db-username" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "db-username") ? 1 : 0
   name         = "db-username"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "db-password" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "db-password") ? 1 : 0
   name         = "db-password"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "tls-certificate-path" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "tls-certificate-path") ? 1 : 0
   name         = "tls-certificate-path"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "tls-key-path" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "tls-key-path") ? 1 : 0
   name         = "tls-key-path"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "cloudflare-zone-id" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "cloudflare-zone-id") ? 1 : 0
   name         = "cloudflare-zone-id"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "cloudflare-api-token" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "cloudflare-api-token") ? 1 : 0
   name         = "cloudflare-api-token"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "azure-domain-sub-id" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "azure-domain-sub-id") ? 1 : 0
   name         = "azure-domain-sub-id"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "azure-domain-name" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "azure-domain-name") ? 1 : 0
   name         = "azure-domain-name"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "azure-domain-rg-name" {
-  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? 1 : 0
+  count        = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" && length(data.azurerm_key_vault_secrets.all_secrets[0].names) > 0 && contains(data.azurerm_key_vault_secrets.all_secrets[0].names, "azure-domain-rg-name") ? 1 : 0
   name         = "azure-domain-rg-name"  # Replace with your secret name in Key Vault
   key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
 }
 
 locals {
-  # Use the Key Vault secret if available, otherwise fallback to the provided variable or a default value
-  app_base_url          = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.app-base-url[0].value : coalesce(var.app_base_url, "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com")
-  cloudflare_api_token  = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.cloudflare-api-token[0].value : coalesce(var.cloudflare_api_token, "dummytokenplaceholdedummytokenplaceholde")
-  cloudflare_zone_id    = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.cloudflare-zone-id[0].value : var.cloudflare_zone_id
-  boldbi_email          = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.boldbi-email[0].value : var.boldbi_email
-  boldbi_password       = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.boldbi-password[0].value : var.boldbi_password
-  boldbi_unlock_key     = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.boldbi-unlock-key[0].value : var.boldbi_unlock_key
-  db_username           = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.db-username[0].value : var.db_username
-  db_password           = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.db-password[0].value : var.db_password
-  tls_certificate_path  = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-certificate-path[0].value : var.tls_certificate_path
-  tls_key_path          = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-key-path[0].value : var.tls_key_path
-  azure_domain_sub_id   = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.azure-domain-sub-id[0].value : var.azure_domain_sub_id
-  azure_domain_name     = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.azure-domain-name[0].value : var.azure_domain_name
-  azure_domain_rg_name  = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.azure-domain-rg-name[0].value : var.azure_domain_rg_name
+  vault_configured = var.boldbi_secret_vault_name != "" && var.boldbi_secret_vault_rg_name != ""
 
-  output_app_base_url   = var.app_base_url != "" ? var.app_base_url : "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com"
+  # Helper: Get vault value only if the specific data source was created (secret exists) and non-empty
+  vault_app_base_url = local.vault_configured && length(data.azurerm_key_vault_secret.app-base-url) > 0 && length(trimspace(data.azurerm_key_vault_secret.app-base-url[0].value)) > 0 ? data.azurerm_key_vault_secret.app-base-url[0].value : null
+  vault_cloudflare_api_token = local.vault_configured && length(data.azurerm_key_vault_secret.cloudflare-api-token) > 0 && length(trimspace(data.azurerm_key_vault_secret.cloudflare-api-token[0].value)) > 0 ? data.azurerm_key_vault_secret.cloudflare-api-token[0].value : null
+  vault_cloudflare_zone_id = local.vault_configured && length(data.azurerm_key_vault_secret.cloudflare-zone-id) > 0 && length(trimspace(data.azurerm_key_vault_secret.cloudflare-zone-id[0].value)) > 0 ? data.azurerm_key_vault_secret.cloudflare-zone-id[0].value : null
+  vault_boldbi_email = local.vault_configured && length(data.azurerm_key_vault_secret.boldbi-email) > 0 && length(trimspace(data.azurerm_key_vault_secret.boldbi-email[0].value)) > 0 ? data.azurerm_key_vault_secret.boldbi-email[0].value : null
+  vault_boldbi_password = local.vault_configured && length(data.azurerm_key_vault_secret.boldbi-password) > 0 && length(trimspace(data.azurerm_key_vault_secret.boldbi-password[0].value)) > 0 ? data.azurerm_key_vault_secret.boldbi-password[0].value : null
+  vault_boldbi_unlock_key = local.vault_configured && length(data.azurerm_key_vault_secret.boldbi-unlock-key) > 0 && length(trimspace(data.azurerm_key_vault_secret.boldbi-unlock-key[0].value)) > 0 ? data.azurerm_key_vault_secret.boldbi-unlock-key[0].value : null
+  vault_db_username = local.vault_configured && length(data.azurerm_key_vault_secret.db-username) > 0 && length(trimspace(data.azurerm_key_vault_secret.db-username[0].value)) > 0 ? data.azurerm_key_vault_secret.db-username[0].value : null
+  vault_db_password = local.vault_configured && length(data.azurerm_key_vault_secret.db-password) > 0 && length(trimspace(data.azurerm_key_vault_secret.db-password[0].value)) > 0 ? data.azurerm_key_vault_secret.db-password[0].value : null
+  vault_tls_certificate_path = local.vault_configured && length(data.azurerm_key_vault_secret.tls-certificate-path) > 0 && length(trimspace(data.azurerm_key_vault_secret.tls-certificate-path[0].value)) > 0 ? data.azurerm_key_vault_secret.tls-certificate-path[0].value : null
+  vault_tls_key_path = local.vault_configured && length(data.azurerm_key_vault_secret.tls-key-path) > 0 && length(trimspace(data.azurerm_key_vault_secret.tls-key-path[0].value)) > 0 ? data.azurerm_key_vault_secret.tls-key-path[0].value : null
+  vault_azure_domain_sub_id = local.vault_configured && length(data.azurerm_key_vault_secret.azure-domain-sub-id) > 0 && length(trimspace(data.azurerm_key_vault_secret.azure-domain-sub-id[0].value)) > 0 ? data.azurerm_key_vault_secret.azure-domain-sub-id[0].value : null
+  vault_azure_domain_name = local.vault_configured && length(data.azurerm_key_vault_secret.azure-domain-name) > 0 && length(trimspace(data.azurerm_key_vault_secret.azure-domain-name[0].value)) > 0 ? data.azurerm_key_vault_secret.azure-domain-name[0].value : null
+  vault_azure_domain_rg_name = local.vault_configured && length(data.azurerm_key_vault_secret.azure-domain-rg-name) > 0 && length(trimspace(data.azurerm_key_vault_secret.azure-domain-rg-name[0].value)) > 0 ? data.azurerm_key_vault_secret.azure-domain-rg-name[0].value : null
+
+  # UPDATED: Per-key fallback logic using ternaries to avoid coalesce errors when all values are null/empty
+  # Vault (if exists and non-empty) > Variable (if non-empty) > Default/Random/Empty
+  app_base_url = local.vault_app_base_url != null && local.vault_app_base_url != "" ? local.vault_app_base_url : (length(trimspace(var.app_base_url)) > 0 ? var.app_base_url : "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com")
+  cloudflare_api_token = local.vault_cloudflare_api_token != null && local.vault_cloudflare_api_token != "" ? local.vault_cloudflare_api_token : (length(trimspace(var.cloudflare_api_token)) > 0 ? var.cloudflare_api_token : "dummytokenplaceholdedummytokenplaceholde")
+  cloudflare_zone_id = local.vault_cloudflare_zone_id != null && local.vault_cloudflare_zone_id != "" ? local.vault_cloudflare_zone_id : (length(trimspace(var.cloudflare_zone_id)) > 0 ? var.cloudflare_zone_id : "")
+  boldbi_email = local.vault_boldbi_email != null && local.vault_boldbi_email != "" ? local.vault_boldbi_email : (length(trimspace(var.boldbi_email)) > 0 ? var.boldbi_email : "")
+  boldbi_password = local.vault_boldbi_password != null && local.vault_boldbi_password != "" ? local.vault_boldbi_password : (length(trimspace(var.boldbi_password)) > 0 ? var.boldbi_password : "")
+  boldbi_unlock_key = local.vault_boldbi_unlock_key != null && local.vault_boldbi_unlock_key != "" ? local.vault_boldbi_unlock_key : (length(trimspace(var.boldbi_unlock_key)) > 0 ? var.boldbi_unlock_key : "")
+  db_username = local.vault_db_username != null && local.vault_db_username != "" ? local.vault_db_username : (length(trimspace(var.db_username)) > 0 ? var.db_username : "")
+  db_password = local.vault_db_password != null && local.vault_db_password != "" ? local.vault_db_password : (length(trimspace(var.db_password)) > 0 ? var.db_password : "")
+  tls_certificate_path = local.vault_tls_certificate_path != null && local.vault_tls_certificate_path != "" ? local.vault_tls_certificate_path : (length(trimspace(var.tls_certificate_path)) > 0 ? var.tls_certificate_path : "")
+  tls_key_path = local.vault_tls_key_path != null && local.vault_tls_key_path != "" ? local.vault_tls_key_path : (length(trimspace(var.tls_key_path)) > 0 ? var.tls_key_path : "")
+  azure_domain_sub_id = local.vault_azure_domain_sub_id != null && local.vault_azure_domain_sub_id != "" ? local.vault_azure_domain_sub_id : (length(trimspace(var.azure_domain_sub_id)) > 0 ? var.azure_domain_sub_id : "")
+  azure_domain_name = local.vault_azure_domain_name != null && local.vault_azure_domain_name != "" ? local.vault_azure_domain_name : (length(trimspace(var.azure_domain_name)) > 0 ? var.azure_domain_name : "")
+  azure_domain_rg_name = local.vault_azure_domain_rg_name != null && local.vault_azure_domain_rg_name != "" ? local.vault_azure_domain_rg_name : (length(trimspace(var.azure_domain_rg_name)) > 0 ? var.azure_domain_rg_name : "")
+
+  output_app_base_url = length(trimspace(var.app_base_url)) > 0 ? var.app_base_url : "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com"
 }
 
 
@@ -654,5 +678,5 @@ resource "kubernetes_secret" "bold_tls" {
 ########################################################################################
 # output
 output "Output_Massage" {
-  value = var.boldbi_secret_vault_name == "" && var.boldbi_secret_vault_rg_name == "" ? "Your app base URL:${local.output_app_base_url}" : "Please use the app-base URL provided in your Azure Key Vault"
+  value = "Your app base URL:${local.output_app_base_url}"
 }
