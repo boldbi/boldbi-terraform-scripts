@@ -346,6 +346,8 @@ resource "aws_iam_role_policy_attachment" "ecr_read_only" {
 
 # Install NGINX Ingress Controller using Helm
 resource "helm_release" "nginx_ingress" {
+  count      = var.load_balancer_type == "nginx" ? 1 : 0
+
   name       = "nginx-ingress"
   namespace  = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
@@ -362,30 +364,63 @@ resource "helm_release" "nginx_ingress" {
     {
       name  = "controller.service.externalTrafficPolicy"
       value = "Local"
-    }]
+    }
+  ]
 
   depends_on = [aws_eks_cluster.eks_cluster, aws_eks_node_group.eks_nodes]
 }
 
-# Fetch the status of the Kubernetes service created by the Helm release
-resource "time_sleep" "wait_for_nginx_service" {
-  depends_on = [helm_release.nginx_ingress]
+# Install Traefik Ingress Controller using Helm
+resource "helm_release" "traefik_ingress" {
+  count      = var.load_balancer_type == "traefik" ? 1 : 0
 
-  create_duration = "30s"
+  name       = "traefik"
+  namespace  = "traefik"
+  repository = "https://traefik.github.io/charts"
+  chart      = "traefik"
+
+  create_namespace = true
+
+  set = [
+    {
+      name  = "service.type"
+      value = "LoadBalancer"
+    }
+  ]
+
+  depends_on = [aws_eks_cluster.eks_cluster, aws_eks_node_group.eks_nodes]
 }
 
-data "kubernetes_service" "nginx_ingress_service" {
+data "kubernetes_service" "ingress_service" {
+  count = var.load_balancer_type == "nginx" ? 1 : 0
+
   metadata {
     name      = "nginx-ingress-ingress-nginx-controller"
     namespace = "ingress-nginx"
   }
-  depends_on = [time_sleep.wait_for_nginx_service]
+
+  depends_on = [helm_release.nginx_ingress]
 }
 
-resource "time_sleep" "wait_for_nginx_ingress" {
-  create_duration = "300s" # Wait for 5 minutes
-  depends_on      = [data.kubernetes_service.nginx_ingress_service]
+data "kubernetes_service" "traefik_service" {
+  count = var.load_balancer_type == "traefik" ? 1 : 0
+
+  metadata {
+    name      = "traefik"
+    namespace = "traefik"
+  }
+
+  depends_on = [helm_release.traefik_ingress]
 }
+
+locals {
+  ingress_hostname = (
+    var.load_balancer_type == "nginx" ?
+    data.kubernetes_service.ingress_service[0].status[0].load_balancer[0].ingress[0].hostname :
+    data.kubernetes_service.traefik_service[0].status[0].load_balancer[0].ingress[0].hostname
+  )
+}
+
 
 #Create a CNAME record in Route 53 to point to the Nginx Loadbalancer External IP
 resource "aws_route53_record" "alb_cname" {
@@ -395,19 +430,25 @@ resource "aws_route53_record" "alb_cname" {
   name = regex("^([^.]+)", replace(replace(local.app_base_url, "https://", ""), "http://", ""))[0]
   type    = "CNAME"
   ttl     = 60
-  records = [data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname]
-  depends_on = [helm_release.nginx_ingress,time_sleep.wait_for_nginx_service]
+  records = [local.ingress_hostname]
+  depends_on = [
+    helm_release.nginx_ingress,
+    helm_release.traefik_ingress
+  ]
 }
 
 resource "cloudflare_record" "alb_cname" {
   count   = local.app_base_url!= "" && local.cloudflare_zone_id != "" && local.route53_zone_id == "" ? 1 : 0
   zone_id = local.cloudflare_zone_id
   name    = regex("^([^.]+)", replace(replace(var.app_base_url, "https://", ""), "http://", ""))[0]
-  value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname
+  value   = local.ingress_hostname
   type    = "CNAME" # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
   proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
-  depends_on = [helm_release.nginx_ingress,time_sleep.wait_for_nginx_service]
+  depends_on = [
+    helm_release.nginx_ingress,
+    helm_release.traefik_ingress
+  ]
 }
 
 resource "helm_release" "aws_efs_csi_driver" {
@@ -464,7 +505,7 @@ resource "helm_release" "bold_bi" {
   },
   {
     name  = "appBaseUrl"
-    value = local.app_base_url != "" ? local.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
+    value = local.app_base_url != "" ? local.app_base_url : "http://${local.ingress_hostname}"
   },
   {
     name  = "image.tag"
@@ -472,7 +513,7 @@ resource "helm_release" "bold_bi" {
   },
   {
     name  = "loadBalancer.type"
-    value = "nginx"
+    value = var.load_balancer_type
   },
   {
     name  = "clusterProvider"
@@ -539,7 +580,7 @@ output "app_base_url" {
 }
 
 output "domain" {
-  value = "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
+  value = "http://${local.ingress_hostname}"
 }
 
 output "resource_name_tag" {

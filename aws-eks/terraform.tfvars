@@ -9,8 +9,11 @@ install_optional_libs = "mongodb,mysql,influxdb,snowflake,oracle,clickhouse,goog
 
 node_instance_type = "t3.xlarge"
 
-bold_bi_version = "13.1.10"
+bold_bi_version = "15.3.8"
 
 instance_class = "db.t3.micro"
 # AWS secret manager ARN
 boldbi_secret_arn = ""
+
+# Update preferred Load Balancer(nginx OR traefik)
+load_balancer_type = "nginx" # nginx OR traefik
