@@ -251,128 +251,42 @@ resource "google_container_node_pool" "gke_node_pool" {
   }
 }
 
-# Install Traefik Ingressroute Controller using Helm
+# Install NGINX Ingress Controller using Helm
+resource "helm_release" "nginx_ingress" {
+  name       = "nginx-ingress"
+  namespace  = "ingress-nginx"
+  repository = "https://kubernetes.github.io/ingress-nginx"
+  chart      = "ingress-nginx"
+  version    = "4.0.10"  # Ensure the version is compatible with your Kubernetes version
 
-resource "helm_release" "traefik" {
-  name       = "traefik"
-  namespace  = "traefik"
-  repository = "https://traefik.github.io/charts"
-  chart      = "traefik"
-  version    = "26.0.0"
+  create_namespace = true
 
-  create_namespace  = true
-  dependency_update = true
-
-  # Service exposure
   set {
-    name  = "service.type"
-    value = "LoadBalancer"
-  }
-
-  # Expose ports
-  set {
-    name  = "ports.web.expose"
-    value = "true"
+    name  = "controller.replicaCount"
+    value = "1"  # Number of replicas for high availability
   }
 
   set {
-    name  = "ports.websecure.expose"
-    value = "true"
+    name  = "controller.service.externalTrafficPolicy"
+    value = "Local"
   }
 
-  # Redirect HTTP -> HTTPS
-  set {
-    name  = "ports.web.http.redirections.entryPoint.to"
-    value = "websecure"
-  }
-
-  set {
-    name  = "ports.web.http.redirections.entryPoint.scheme"
-    value = "https"
-  }
-
-  set {
-    name  = "ports.web.http.redirections.entryPoint.permanent"
-    value = "true"
-  }
-
-  # Increase timeouts (important for dashboards / APIs)
-  set {
-    name  = "ports.websecure.transport.respondingTimeouts.readTimeout"
-    value = "300s"
-  }
-
-  set {
-    name  = "ports.websecure.transport.respondingTimeouts.writeTimeout"
-    value = "300s"
-  }
-
-  set {
-    name  = "ports.websecure.transport.respondingTimeouts.idleTimeout"
-    value = "300s"
-  }
-
-  # Enable providers
-  set {
-    name  = "providers.kubernetesCRD.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "providers.kubernetesIngress.enabled"
-    value = "true"
-  }
-
-  # Required additional arguments
-  set {
-    name  = "additionalArguments[0]"
-    value = "--providers.kubernetescrd=true"
-  }
-
-  set {
-    name  = "additionalArguments[1]"
-    value = "--providers.kubernetesingress=true"
-  }
-
-  # Logging
-  set {
-    name  = "logs.general.level"
-    value = "INFO"
-  }
-
-  set {
-    name  = "logs.access.enabled"
-    value = "true"
-  }
-
-  # Enable dashboard
-  set {
-    name  = "api.dashboard"
-    value = "true"
-  }
-
-  set {
-    name  = "ingressRoute.dashboard.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "ingressRoute.dashboard.entryPoints[0]"
-    value = "websecure"
-  }
-
-  depends_on = [
-    google_container_cluster.gke_cluster
-  ]
+  depends_on = [google_container_cluster.gke_cluster]
 }
 
-data "kubernetes_service" "traefik_service" {
-  metadata {
-    name      = "traefik"
-    namespace = "traefik"
-  }
+# Fetch the status of the Kubernetes service created by the Helm release
+resource "time_sleep" "wait_for_nginx_service" {
+  depends_on = [helm_release.nginx_ingress]
 
-  depends_on = [helm_release.traefik]
+  create_duration = "30s"
+}
+
+data "kubernetes_service" "nginx_ingress_service" {
+  metadata {
+    name      = "nginx-ingress-ingress-nginx-controller"
+    namespace = "ingress-nginx"
+  }
+  depends_on = [time_sleep.wait_for_nginx_service]
 }
 
 # Create Bold TLS Secret
@@ -391,11 +305,11 @@ resource "kubernetes_secret" "bold_tls" {
   depends_on = [helm_release.bold_bi]
 }
 
-resource "cloudflare_record" "traefik" {
+resource "cloudflare_record" "nginx_ingress" {
   count   = var.cloudflare_zone_id != "" ? 1 : 0
   zone_id = var.cloudflare_zone_id
   name    = split(".", replace(replace(var.app_base_url , "https://", ""), "http://", ""))[0]
-  value   = data.kubernetes_service.traefik_service.status[0].load_balancer[0].ingress[0].ip
+  value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip
   type    = "A"  # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
   proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
@@ -418,7 +332,7 @@ resource "helm_release" "bold_bi" {
 
   set {
     name  = "appBaseUrl"
-    value = var.app_base_url != "" ? var.app_base_url : "http://${data.kubernetes_service.traefik_service.status[0].load_balancer[0].ingress[0].ip}"
+    value = var.app_base_url != "" ? var.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}"
   }
 
   set {
@@ -427,7 +341,7 @@ resource "helm_release" "bold_bi" {
   }
   set {
     name  = "loadBalancer.type"
-    value = "traefik"
+    value = "nginx"
   }
   set {
     name  = "clusterProvider"
