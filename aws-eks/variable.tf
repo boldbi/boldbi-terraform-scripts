@@ -41,6 +41,17 @@ variable "nginx_ingress_version" {
   default = "1.12.0"
 }
 
+variable "load_balancer_type" {
+  description = "Ingress controller type: nginx or traefik"
+  type        = string
+  default     = "nginx"
+
+  validation {
+    condition     = contains(["nginx", "traefik"], var.load_balancer_type)
+    error_message = "Only 'nginx' or 'traefik' are allowed."
+  }
+}
+
 # Bold BI Application Variables
 
 variable "bold_bi_namespace" {

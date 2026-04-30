@@ -34,9 +34,10 @@ Bold BI Terraform EKS deployments have been tested and validated with the follow
 
 ### BoldBI Kubernetes Compatibility
 
-| **BoldBI Version** | **Kubernetes Supported Versions** | **ingress-nginx Tested Versions** | **Tested Environments** | **Release Date** |
-|--------------------|-----------------------------------|-----------------------------------|------------------------|------------------|
-| Latest (13.1.10)    | 1.32.x, 1.31.x, 1.30.x            | 4.0.10                  | EKS 1.32     | 2025-07-15       |
+| **BoldBI Version** | **Kubernetes Supported Versions** | **ingress-nginx Tested Versions** | **ingress-traefik Tested Versions** | **Tested Environments** | **Release Date** |
+|--------------------|-----------------------------------|-----------------------------------|-----------------------------------|------------------------|------------------|
+| (13.1.10)    | 1.32.x, 1.31.x, 1.30.x            | 4.0.10                  | -                     | EKS 1.32     | 2025-07-15       |
+| Latest (15.3.8)    | 1.32.x, 1.31.x, 1.30.x            | 4.0.10                  | 3.6.10                | EKS 1.32     | 2026-04-27       |
 
 ---
 
@@ -114,6 +115,24 @@ Application Variables after setting in AWS Secrets Manager:
 - If you need to change any infrastructure or application-level settings, refer to the `terraform.tfvars` file.
 
 - If you do not set the secrets in either location, Terraform will prompt you for the values during execution.
+
+### Ingress Controller (Load Balancer) Support
+
+This Terraform setup supports dynamic selection of the ingress controller using a variable.
+
+#### Supported Options
+
+- **nginx** (default)
+- **traefik**
+
+#### Configuration
+
+You can choose the ingress controller by setting the following variable in `terraform.tfvars`:
+
+```sh
+load_balancer_type = "nginx"   # "nginx" or "traefik"
+```
+
 
 ### Step 4: Initialize Terraform
 
