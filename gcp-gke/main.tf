@@ -27,7 +27,7 @@ provider "cloudflare" {
 data "google_client_config" "default" {}
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = google_container_cluster.gke_cluster.endpoint
     cluster_ca_certificate = base64decode(google_container_cluster.gke_cluster.master_auth.0.cluster_ca_certificate)
     token                  = data.google_client_config.default.access_token
@@ -253,6 +253,7 @@ resource "google_container_node_pool" "gke_node_pool" {
 
 # Install NGINX Ingress Controller using Helm
 resource "helm_release" "nginx_ingress" {
+  count      = var.load_balancer_type == "nginx" ? 1 : 0
   name       = "nginx-ingress"
   namespace  = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
@@ -261,32 +262,93 @@ resource "helm_release" "nginx_ingress" {
 
   create_namespace = true
 
-  set {
-    name  = "controller.replicaCount"
-    value = "1"  # Number of replicas for high availability
-  }
-
-  set {
-    name  = "controller.service.externalTrafficPolicy"
-    value = "Local"
-  }
+  set = [
+    {
+      name  = "controller.replicaCount"
+      value = "1"  # Number of replicas for high availability
+    },
+    {
+      name  = "controller.service.externalTrafficPolicy"
+      value = "Local"
+    }
+  ]
 
   depends_on = [google_container_cluster.gke_cluster]
 }
 
 # Fetch the status of the Kubernetes service created by the Helm release
 resource "time_sleep" "wait_for_nginx_service" {
+  count      = var.load_balancer_type == "nginx" ? 1 : 0
   depends_on = [helm_release.nginx_ingress]
 
-  create_duration = "30s"
+  create_duration = "60s"  # Wait for load balancer IP to be assigned
 }
 
-data "kubernetes_service" "nginx_ingress_service" {
+
+################################################################################
+
+# Install Traefik Ingress Controller using Helm
+resource "helm_release" "traefik_ingress" {
+  count      = var.load_balancer_type == "traefik" ? 1 : 0
+
+  name       = "traefik"
+  namespace  = "traefik"
+  repository = "https://traefik.github.io/charts"
+  chart      = "traefik"
+
+  create_namespace = true
+
+  set = [
+    {
+      name  = "service.type"
+      value = "LoadBalancer"
+    }
+  ]
+
+  depends_on = [google_container_cluster.gke_cluster]
+}
+
+# Wait for Traefik ingress to be ready
+resource "time_sleep" "wait_for_traefik_service" {
+  count      = var.load_balancer_type == "traefik" ? 1 : 0
+  depends_on = [helm_release.traefik_ingress]
+
+  create_duration = "60s"  # Wait for load balancer IP to be assigned
+}
+
+######################################################################################
+data "kubernetes_service" "ingress_service" {
+  count = var.load_balancer_type == "nginx" ? 1 : 0
+
   metadata {
     name      = "nginx-ingress-ingress-nginx-controller"
     namespace = "ingress-nginx"
   }
+
   depends_on = [time_sleep.wait_for_nginx_service]
+}
+
+data "kubernetes_service" "traefik_service" {
+  count = var.load_balancer_type == "traefik" ? 1 : 0
+
+  metadata {
+    name      = "traefik"
+    namespace = "traefik"
+  }
+
+  depends_on = [helm_release.traefik_ingress]
+}
+
+##########################################################################################
+
+locals {
+  ingress_ip = (
+    var.load_balancer_type == "nginx" ?
+    data.kubernetes_service.ingress_service[0].status[0].load_balancer[0].ingress[0].ip :
+    data.kubernetes_service.traefik_service[0].status[0].load_balancer[0].ingress[0].ip
+  )
+  ingress_service = var.load_balancer_type == "nginx" ? data.kubernetes_service.ingress_service[0] : data.kubernetes_service.traefik_service[0]
+  cloudflare_zone_id = var.cloudflare_zone_id
 }
 
 # Create Bold TLS Secret
@@ -305,11 +367,11 @@ resource "kubernetes_secret" "bold_tls" {
   depends_on = [helm_release.bold_bi]
 }
 
-resource "cloudflare_record" "nginx_ingress" {
-  count   = var.cloudflare_zone_id != "" ? 1 : 0
+resource "cloudflare_record" "ingress_record" {
+  count   = (var.load_balancer_type == "nginx" || var.load_balancer_type == "traefik") && local.cloudflare_zone_id != "" ? 1 : 0
   zone_id = var.cloudflare_zone_id
   name    = split(".", replace(replace(var.app_base_url , "https://", ""), "http://", ""))[0]
-  value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip
+  value   = local.ingress_service.status[0].load_balancer[0].ingress[0].ip
   type    = "A"  # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
   proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
@@ -325,89 +387,79 @@ resource "helm_release" "bold_bi" {
 
   create_namespace = true
 
-  set {
-    name  = "namespace"
-    value = var.bold_bi_namespace
-  }
+  set = [
+    {
+      name  = "namespace"
+      value = var.bold_bi_namespace
+    },
+    {
+      name  = "appBaseUrl"
+      value = var.app_base_url != "" ? var.app_base_url : "http://${local.ingress_service.status[0].load_balancer[0].ingress[0].ip}"
+    },
+    {
+      name  = "image.tag"
+      value = var.bold_bi_version
+    },
+    {
+      name  = "loadBalancer.type"
+      value = var.load_balancer_type
+    },
+    {
+      name  = "clusterProvider"
+      value = "gke"
+    },
+    {
+      name  = "persistentVolume.gke.fileShareName"
+      value = google_filestore_instance.filestore.file_shares[0].name
+    },
+    {
+      name  = "persistentVolume.gke.fileShareIp"
+      value = google_filestore_instance.filestore.networks[0].ip_addresses[0]
+    },
+    {
+      name  = "databaseServerDetails.dbType"
+      value = "postgresql"
+    },
+    {
+      name  = "databaseServerDetails.dbHost"
+      value = google_sql_database_instance.postgres_instance.ip_address[0].ip_address
+    },
+    {
+      name  = "databaseServerDetails.dbPort"
+      value = "5432"
+    },
+    {
+      name  = "databaseServerDetails.dbUser"
+      value = var.db_username
+    },
+    {
+      name  = "databaseServerDetails.dbPassword"
+      value = var.db_password
+    },
+    {
+      name  = "databaseServerDetails.dbName"
+      value = google_sql_database.bold_services_db.name
+    },
+    {
+      name  = "databaseServerDetails.dbSchema"
+      value = "public"
+    },
+    {
+      name  = "rootUserDetails.email"
+      value = var.boldbi_email
+    },
+    {
+      name  = "rootUserDetails.password"
+      value = var.boldbi_password
+    },
+    {
+      name  = "licenseKeyDetails.licenseKey"
+      value = var.boldbi_unlock_key
+    }
+  ]
 
-  set {
-    name  = "appBaseUrl"
-    value = var.app_base_url != "" ? var.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}"
-  }
-
-  set {
-    name  = "image.tag"
-    value =  var.bold_bi_version
-  }
-  set {
-    name  = "loadBalancer.type"
-    value = "nginx"
-  }
-  set {
-    name  = "clusterProvider"
-    value = "gke" 
-  }
-
-  set {
-    name  = "persistentVolume.gke.fileShareName"
-    value = google_filestore_instance.filestore.file_shares[0].name
-  }
-  set {
-    name  = "persistentVolume.gke.fileShareIp"
-    value = google_filestore_instance.filestore.networks[0].ip_addresses[0]
-  }
-
-  set {
-    name  = "databaseServerDetails.dbType"
-    value = "postgresql" 
-  }
-
-  set {
-    name  = "databaseServerDetails.dbHost"
-    value = google_sql_database_instance.postgres_instance.ip_address[0].ip_address
-  }
-
-  set {
-    name  = "databaseServerDetails.dbPort"
-    value = "5432" 
-  }
-
-  set {
-    name  = "databaseServerDetails.dbUser"
-    value = var.db_username
-  }
-
-  set {
-    name  = "databaseServerDetails.dbPassword"
-    value =  var.db_password
-  }
-
-  set {
-    name  = "databaseServerDetails.dbName"
-    value =  google_sql_database.bold_services_db.name
-  }
-
-  set {
-    name  = "databaseServerDetails.dbSchema"
-    value = "public" 
-  }
-
-  set {
-    name  = "rootUserDetails.email"
-    value = var.boldbi_email
-  }
-
-  set {
-    name  = "rootUserDetails.password"
-    value = var.boldbi_password
-  }
-
-  set {
-    name  = "licenseKeyDetails.licenseKey"
-    value = var.boldbi_unlock_key
-  }
   depends_on = [
-    
+
   ]
 }
 
